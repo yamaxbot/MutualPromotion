@@ -68,7 +68,7 @@ async def buy_otzuv_handler_two(message: Message, state: FSMContext):
         if int(points) >= int(message.text) and int(points) > 0 and int(message.text) > 0:
             await state.update_data(price=message.text)
             await state.set_state(buy_otzuv_state.des)
-            await message.answer('📝Теперь введите полное описание того что нужно сделать. \n\n🌗Если описание будет не полное, модерация отклонит ваш запрос. \n\n❌Если хотите отменить создание заказа, нажмите кнопку отменить.', reply_markup=kb.cancel_two_inline_keyboard)
+            await message.answer('📝Теперь введите полное описание того что нужно сделать. И объязательно прикрепите ссылку \n\n🌗Если описание будет не полное, модерация отклонит ваш запрос. \n\n❌Если хотите отменить создание заказа, нажмите кнопку отменить.', reply_markup=kb.cancel_two_inline_keyboard)
         else: 
             await message.answer('⚠Произошла ошибка одно из нижеперечисленных:\n\n-У вас недостаточно монет\n\n-Вы некорректно ввели количество услуг')
             await state.clear()
@@ -104,7 +104,7 @@ async def approve_buy_otzuv_handler(callback: CallbackQuery, bot: Bot):
 @router.callback_query(F.data == 'reject')
 async def approve_buy_otzuv_handler(callback: CallbackQuery, bot: Bot):
     await callback.answer()
-    await callback.message.edit_text(text=f'{callback.message.text}\nОткланён')
+    await callback.message.edit_text(text=f'{callback.message.text}\nОтклонён')
     data_buy = str(callback.message.text).split(':::')
     for i in range(len(data_buy)):
         if '\n\n' in data_buy[i] and i != 3:
@@ -146,7 +146,7 @@ async def reject_pass_handler(callback: CallbackQuery, bot: Bot):
     data = str(callback.message.caption).split()
     await sql.get_fast_orders_number_sql(data[2])
     await bot.send_message(text='👻К сожаление не все условия были соблюдены, попробуйте ещё раз прочитав правила /rules', chat_id=data[-1])
-    await callback.message.edit_caption(caption=f'{data_text}\nОткланён')
+    await callback.message.edit_caption(caption=f'{data_text}\nОтклонён')
 
 
 @router.message(Command('add_chat'))
@@ -177,7 +177,7 @@ async def cancel_handler(callback: CallbackQuery, state: FSMContext):
 async def statistics_handler(message: Message):
     if message.from_user.id in ADMINS:
         clients = await sql.get_all_clients_sql()
-        activ = await sql.active_orders_sql()
+        activ = await sql.new_get_all_fast_orders_sql()
         order = await sql.get_number_sql()
         await message.answer(text=f'👻Статистика: \n\n🌟Количество клиентов за всё время: {len(clients)}\n\n🌪Всего заказов за всё время: {order[0][0]}\n\n🧲Количество активных заказов: {len(activ)}')
 

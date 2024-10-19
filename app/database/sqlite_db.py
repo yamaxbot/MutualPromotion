@@ -131,10 +131,8 @@ async def new_get_all_fast_orders_sql(id):
     ls = []
     all_order = cur.execute("SELECT * FROM fast_orders").fetchall()
     for order in all_order:
-        if str(id) not in order[3] and order[-1] == '1' and order[-2] != str(id):
+        if str(id) not in order[3] and order[-1] == '1' and order[-2] != str(id) and int(order[2]) > 0:
             ls.append(order)
     return ls
 
 
-async def active_orders_sql():
-    return cur.execute("SELECT * FROM fast_orders WHERE percentage != '0'").fetchall()
