@@ -136,3 +136,10 @@ async def new_get_all_fast_orders_sql(id):
     return ls
 
 
+async def active_orders_sql():
+    all_order = cur.execute("SELECT * FROM fast_orders").fetchall()
+    ls = []
+    for order in all_order:
+        if int(order[2]) > 0:
+            ls.append(order)
+    return ls

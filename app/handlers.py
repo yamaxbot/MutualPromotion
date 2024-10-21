@@ -177,7 +177,7 @@ async def cancel_handler(callback: CallbackQuery, state: FSMContext):
 async def statistics_handler(message: Message):
     if message.from_user.id in ADMINS:
         clients = await sql.get_all_clients_sql()
-        activ = await sql.new_get_all_fast_orders_sql()
+        activ = await sql.active_orders_sql()
         order = await sql.get_number_sql()
         await message.answer(text=f'👻Статистика: \n\n🌟Количество клиентов за всё время: {len(clients)}\n\n🌪Всего заказов за всё время: {order[0][0]}\n\n🧲Количество активных заказов: {len(activ)}')
 
