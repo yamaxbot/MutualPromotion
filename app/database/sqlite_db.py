@@ -31,6 +31,13 @@ async def add_points_sql(id):
     db.commit()
 
 
+async def add_two_points_sql(id):
+    point = cur.execute("SELECT * FROM clients WHERE id = ?", (id,)).fetchone()
+    point = point[1]
+    cur.execute("UPDATE clients SET point = ? WHERE id = ?", (int(point)+2, id))
+    db.commit()
+
+
 async def add_number_sql(qul):
     cur.execute("UPDATE orders SET number = ? WHERE number = ?", (qul+1, qul,))
     db.commit()
