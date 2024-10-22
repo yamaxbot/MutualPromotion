@@ -12,6 +12,9 @@ import random
 
 router = Router()
 
+class issue_point_state(StatesGroup):
+    des = State()
+
 class buy_otzuv_state(StatesGroup):
     price = State()
     des = State()
@@ -26,7 +29,7 @@ class newsletter_state(StatesGroup):
 
 @router.message(Command('start'))
 async def command_start_handler(message: Message):
-    await message.answer('🪄Это сервис Mutual_Promotion, где вы можете бесплатно получить подписки, лайки, коментарии, делая их другим\n\n🖍Когда вы подписываетесь, ставите лайки и коментарии другим, мы вам даём монеты, за которые в последующем, вы сможете покупать себе подписчиков, лайки и коментарии от реальных людей\n\n🪙1 Монета = 1 Услуга(1 подписчик, 1 лайк или 1комент)\n\n💎Свою первую монету, вы можете получить введя команду /point \n\n👨‍💻Правила вы можете прочитать введя команду /rules\n\n📈В последующем чтобы заработать монеты, вам нужно подписываться, ставить лайки, писать коментарии другим, нажав на кнопку "Заработать монеты"\n\n🛒Для того чтобы купить подписки, лайки, коментарии, нажмите кнопку "Купить услуги"\n\n🏦Чтобы посмотреть баланс монет, нажмите кнопку "Баланс"\n\n🤵‍♂️Наш канал: @Mutual_Promotion_Channel', reply_markup=kb.client_reply_keyboards)
+    await message.answer('🪄Это сервис Mutual_Promotion, где вы можете бесплатно получить подписки, лайки, коментарии, делая их другим\n\n🖍Когда вы подписываетесь, ставите лайки и коментарии другим, мы вам даём монеты, за которые в последующем, вы сможете покупать себе подписчиков, лайки и коментарии от реальных людей\n\n🪙1 Монета = 1 Услуга(1 подписчик, 1 лайк или 1комент)\n\n💎Свои первые 2 монеты, вы можете получить введя команду /point \n\n👨‍💻Правила вы можете прочитать введя команду /rules\n\n📈В последующем чтобы заработать монеты, вам нужно подписываться, ставить лайки, писать коментарии другим, нажав на кнопку "Заработать монеты"\n\n🛒Для того чтобы купить подписки, лайки, коментарии, нажмите кнопку "Купить услуги"\n\n🏦Чтобы посмотреть баланс монет, нажмите кнопку "Баланс"\n\n🤵‍♂️Наш канал: @Mutual_Promotion_Channel', reply_markup=kb.client_reply_keyboards)
     clients_or_no = await sql.get_clients_sql(message.from_user.id)
     if clients_or_no == None:
         await sql.add_all_clients_sql(message.from_user.id)
@@ -70,7 +73,7 @@ async def buy_otzuv_handler_two(message: Message, state: FSMContext):
         if int(points) >= int(message.text) and int(points) > 0 and int(message.text) > 0:
             await state.update_data(price=message.text)
             await state.set_state(buy_otzuv_state.des)
-            await message.answer('📝Теперь введите полное описание того что нужно сделать. И объязательно прикрепите ссылку \n\n🌗Если описание будет не полное, модерация отклонит ваш запрос. \n\n❌Если хотите отменить создание заказа, нажмите кнопку отменить.', reply_markup=kb.cancel_two_inline_keyboard)
+            await message.answer('📝Теперь введите полное описание того что нужно сделать одному человеку. И объязательно прикрепите ссылку \n\n🌗Если описание будет не полное, модерация отклонит ваш запрос. \n\n❌Если хотите отменить создание заказа, нажмите кнопку отменить.', reply_markup=kb.cancel_two_inline_keyboard)
         else: 
             await message.answer('⚠Произошла ошибка одно из нижеперечисленных:\n\n-У вас недостаточно монет\n\n-Вы некорректно ввели количество услуг')
             await state.clear()
@@ -135,6 +138,9 @@ async def approve_pass_handler(callback: CallbackQuery, bot: Bot):
     await sql.add_points_sql(data[-1])
     await sql.update_id_fast_orders_sql(data[2], data[-1])
     await bot.send_message(text=f'🌟Вам зачислен бал за выполненный заказ номер {data[2]}', chat_id=data[-1])
+    fast_order = await sql.activ_order_or_no_sql(str(data[2]))
+    if fast_order != None:
+        await bot.send_message(text=f'🌟Ваш заказ номер {fast_order[0]} успешно завершён!', chat_id=fast_order[4])
     await callback.message.edit_caption(caption=f'{data_text}\nОдобрен')
 
 
@@ -191,16 +197,15 @@ async def newsletter_handler_one(message: Message, state: FSMContext):
 async def newsletter_handler_two(message: Message, state: FSMContext):
     if message.from_user.id in ADMINS:
         clients = await sql.get_all_clients_sql()
-        for client in clients:
-            await message.send_copy(chat_id=client[0])
-        
         await state.clear()
         await message.answer('Сообщение разослано')
+        for client in clients:
+            await message.send_copy(chat_id=client[0])
 
 
 @router.message(Command('point'))
 async def add_point_chanel(message: Message, state: FSMContext):
-    await message.answer(text=f'💬Подпишитесь на канал и нажмите кнопку проверить.\n\n✅Если вы подписались мы выдадим вам балл.\n\n{CHANEL}', reply_markup=kb.check_inline_keyboard)
+    await message.answer(text=f'💬Подпишитесь на канал и нажмите кнопку проверить.\n\n✅Если вы подписались мы вам выдадим 2 монеты.\n\n{CHANEL}', reply_markup=kb.check_inline_keyboard)
 
 
 @router.callback_query(F.data == 'check')
@@ -212,7 +217,7 @@ async def check_chanel_handler(callback: CallbackQuery, bot: Bot):
         if str(member.status) == 'ChatMemberStatus.MEMBER':
             await sql.add_two_points_sql(callback.from_user.id)
             await sql.subscription_update_sql(callback.from_user.id)
-            await callback.message.answer('Уcпешно! Мы вам выдали бал')
+            await callback.message.answer('Уcпешно! Мы вам выдали баллы')
         else: 
             await callback.message.answer('Вы не подписались на канал, попробуйте ещё раз.')
     else:
@@ -229,7 +234,7 @@ async def two_cancel_state_handler(callback: CallbackQuery, state: FSMContext):
 
 @router.message(Command('rules'))
 async def rules_handler(message: Message):
-    await message.answer('📜ПРАВИЛА:\n\n❗️1 Давать полное описание заданию\n\n❗️2 Выполнять задание в точности и корректно отправлять доказательства\n\n❗️3 Заказывать услугу одного вида за 1 раз\n\n❗️4 Следовать в точности по инструкциям\n\n❗️5 Не рекламировать скам, обман\n\n❗️6 Рекламировать только в популярных приложениях и только каналы(группы)')
+    await message.answer('📜ПРАВИЛА:\n\n❗️1 Давать полное описание заданию\n\n❗️2 Выполнять задание в точности и корректно отправлять доказательства\n\n❗️3 Заказывать услугу одного вида за 1 раз\n\n❗️4 Следовать в точности по инструкциям\n\n❗️5 Не рекламировать скам, обман\n\n❗️6 Рекламировать только в популярных приложениях и только каналы(группы)\n\n❗️7 Разрешить делать скриншот в канале в котором хотите сделать рекламу(Без этого исполнители не могут скинуть пруф что они сделали задание)')
 
 
 @router.message(Command('add_point'))
@@ -237,3 +242,18 @@ async def add_point_admins_handler(message: Message):
     if message.from_user.id in ADMINS:
         await sql.add_points_sql(message.from_user.id)
         await message.answer('Вам добавлен бал')
+
+@router.message(Command('issue'))
+async def issue_point_one_handler(message: Message, state: FSMContext):
+    if message.from_user.id in ADMINS:
+        await state.set_state(issue_point_state.des)
+        await message.answer('Введите описание')
+
+
+@router.message(issue_point_state.des)
+async def issue_point_two_handler(message: Message, bot: Bot, state: FSMContext):
+    data = str(message.text).split('/')
+    await sql.issue_points_sql(data[0], data[1])
+    await bot.send_message(text=data[2], chat_id=data[0])
+    await state.clear()
+    await message.answer('Успешно!')

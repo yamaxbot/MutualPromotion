@@ -61,18 +61,18 @@ async def update_fast_orders_sql(percentage, number):
     db.commit()
 
 
-async def add_client_orders_sql(id, numbers, des):
-    cur.execute("INSERT INTO client_orders VALUES(?, ?, ?, ?)", (id, numbers, des, '', ))
-    db.commit()
+# async def add_client_orders_sql(id, numbers, des):
+#     cur.execute("INSERT INTO client_orders VALUES(?, ?, ?, ?)", (id, numbers, des, '', ))
+#     db.commit()
 
 
-async def update_client_orders_sql(id, photo_id):
-    cur.execute("UPDATE client_orders SET proof = ? WHERE id = ?", (photo_id, id, ))
-    db.commit()
+# async def update_client_orders_sql(id, photo_id):
+#     cur.execute("UPDATE client_orders SET proof = ? WHERE id = ?", (photo_id, id, ))
+#     db.commit()
 
 
-async def get_client_orders_sql(id):
-    return cur.execute("SELECT * FROM client_orders WHERE id = ?", (id, )).fetchone()
+# async def get_client_orders_sql(id):
+#     return cur.execute("SELECT * FROM client_orders WHERE id = ?", (id, )).fetchone()
 
 
 async def get_fast_orders_number_sql(number):
@@ -89,9 +89,9 @@ async def minus_balance_sql(id, point_m):
     db.commit()
 
 
-async def delete_client_orders_aql(id):
-    cur.execute("DELETE FROM client_orders WHERE id = ?", (id, ))
-    db.commit()
+# async def delete_client_orders_aql(id):
+#     cur.execute("DELETE FROM client_orders WHERE id = ?", (id, ))
+#     db.commit()
 
 
 async def return_points_sql(id, point_p):
@@ -150,3 +150,17 @@ async def active_orders_sql():
         if int(order[2]) > 0:
             ls.append(order)
     return ls
+
+async def activ_order_or_no_sql(number):
+    order = cur.execute("SELECT * FROM fast_orders WHERE number = ?", (number,)).fetchone()
+    if order[2] == '0':
+        return order
+    else:
+        return
+
+
+async def issue_points_sql(id, point):
+    client = cur.execute("SELECT * FROM clients WHERE id = ?", (id, )).fetchone()
+    points = int(client[1]) + int(point)
+    cur.execute("UPDATE clients SET point = ? WHERE id = ?", (points, id))
+    db.commit()
