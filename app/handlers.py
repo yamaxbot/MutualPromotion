@@ -198,11 +198,14 @@ async def newsletter_handler_two(message: Message, state: FSMContext):
     if message.from_user.id in ADMINS:
         clients = await sql.get_all_clients_sql()
         await state.clear()
-        await message.answer('Сообщение разослано')
+        total = 0
         for client in clients:
-            await message.send_copy(chat_id=client[0])
-
-
+            try:
+                await message.send_copy(chat_id=client[0])
+            except:
+                total = total + 1
+                continue
+        await message.answer(text=f'Сообщение разослано, {total} людей')
 @router.message(Command('point'))
 async def add_point_chanel(message: Message, state: FSMContext):
     await message.answer(text=f'💬Подпишитесь на канал и нажмите кнопку проверить.\n\n✅Если вы подписались мы вам выдадим 2 монеты.\n\n{CHANEL}', reply_markup=kb.check_inline_keyboard)
