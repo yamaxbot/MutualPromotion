@@ -73,7 +73,7 @@ async def buy_otzuv_handler_two(message: Message, state: FSMContext):
         if int(points) >= int(message.text) and int(points) > 0 and int(message.text) > 0:
             await state.update_data(price=message.text)
             await state.set_state(buy_otzuv_state.des)
-            await message.answer('📝Теперь введите полное описание того что нужно сделать одному человеку. И объязательно прикрепите ссылку \n\n🌗Если описание будет не полное, модерация отклонит ваш запрос. \n\n❌Если хотите отменить создание заказа, нажмите кнопку отменить.', reply_markup=kb.cancel_two_inline_keyboard)
+            await message.answer('📝Теперь введите полное описание того что нужно сделать одному человеку. И объязательно прикрепите ссылку.\n\n🌟Пример:\nНужно подписаться на канал @Mutual_Promotion_Channel\n\n🌗Если описание будет не полное, модерация отклонит ваш запрос. \n\n❌Если хотите отменить создание заказа, нажмите кнопку отменить.', reply_markup=kb.cancel_two_inline_keyboard)
         else: 
             await message.answer('⚠Произошла ошибка одно из нижеперечисленных:\n\n-У вас недостаточно монет\n\n-Вы некорректно ввели количество услуг')
             await state.clear()
@@ -103,8 +103,11 @@ async def approve_buy_otzuv_handler(callback: CallbackQuery, bot: Bot):
         if '\n\n' in data_buy[i] and i != 3:
             data_buy[i] = data_buy[i].replace('\n\n', '')
     await sql.add_fast_orders_sql(data_buy[1], data_buy[3], data_buy[5], data_buy[-1])
-    await bot.send_message(text=f'🌟Модерация приняла ваш заказ номер {data_buy[1]}, ожидайте выбранной услуги', chat_id=data_buy[7])
-    
+    try:
+        await bot.send_message(text=f'🌟Модерация приняла ваш заказ номер {data_buy[1]}, ожидайте выбранной услуги', chat_id=data_buy[7])
+    except:
+        pass
+
 
 @router.callback_query(F.data == 'reject')
 async def approve_buy_otzuv_handler(callback: CallbackQuery, bot: Bot):
@@ -115,7 +118,10 @@ async def approve_buy_otzuv_handler(callback: CallbackQuery, bot: Bot):
         if '\n\n' in data_buy[i] and i != 3:
             data_buy[i] = data_buy[i].replace('\n\n', '')
     await sql.return_points_sql(data_buy[-1], data_buy[5])
-    await bot.send_message(text=f'👻Модерация откланила ваш заказ номер {data_buy[1]}, вы нарушили правила, попробуйте ещё раз прочитав правила введя команду /rules', chat_id=data_buy[7])
+    try:
+        await bot.send_message(text=f'👻Модерация откланила ваш заказ номер {data_buy[1]}, вы нарушили правила, попробуйте ещё раз прочитав правила введя команду /rules', chat_id=data_buy[7])
+    except:
+        pass
 
 
 @router.message(earn_state.photo)
@@ -137,12 +143,17 @@ async def approve_pass_handler(callback: CallbackQuery, bot: Bot):
     data = str(callback.message.caption).split()
     await sql.add_points_sql(data[-1])
     await sql.update_id_fast_orders_sql(data[2], data[-1])
-    await bot.send_message(text=f'🌟Вам зачислен бал за выполненный заказ номер {data[2]}', chat_id=data[-1])
     fast_order = await sql.activ_order_or_no_sql(str(data[2]))
     if fast_order != None:
-        await bot.send_message(text=f'🌟Ваш заказ номер {fast_order[0]} успешно завершён!', chat_id=fast_order[4])
+        try:
+            await bot.send_message(text=f'🌟Ваш заказ номер {fast_order[0]} успешно завершён!', chat_id=fast_order[4])
+        except:
+            pass
     await callback.message.edit_caption(caption=f'{data_text}\nОдобрен')
-
+    try:
+        await bot.send_message(text=f'🌟Вам зачислен бал за выполненный заказ номер {data[2]}', chat_id=data[-1])
+    except:
+        pass
 
 @router.callback_query(F.data == 'reject_pass')
 async def reject_pass_handler(callback: CallbackQuery, bot: Bot):
@@ -150,8 +161,11 @@ async def reject_pass_handler(callback: CallbackQuery, bot: Bot):
     data_text = callback.message.caption
     data = str(callback.message.caption).split()
     await sql.get_fast_orders_number_sql(data[2])
-    await bot.send_message(text=f'👻К сожаление не все условия были соблюдены когда выполняли заказ номер {data[2]}, попробуйте ещё раз прочитав правила /rules', chat_id=data[-1])
     await callback.message.edit_caption(caption=f'{data_text}\nОтклонён')
+    try:
+        await bot.send_message(text=f'👻К сожаление не все условия были соблюдены когда выполняли заказ номер {data[2]}, попробуйте ещё раз прочитав правила /rules', chat_id=data[-1])
+    except:
+        pass
 
 
 @router.message(Command('add_chat'))
@@ -206,6 +220,8 @@ async def newsletter_handler_two(message: Message, state: FSMContext):
                 total = total + 1
                 continue
         await message.answer(text=f'Сообщение разослано, {total} людей')
+
+
 @router.message(Command('point'))
 async def add_point_chanel(message: Message, state: FSMContext):
     await message.answer(text=f'💬Подпишитесь на канал и нажмите кнопку проверить.\n\n✅Если вы подписались мы вам выдадим 2 монеты.\n\n{CHANEL}', reply_markup=kb.check_inline_keyboard)
@@ -239,12 +255,6 @@ async def two_cancel_state_handler(callback: CallbackQuery, state: FSMContext):
 async def rules_handler(message: Message):
     await message.answer('📜ПРАВИЛА:\n\n❗️1 Давать полное описание заданию\n\n❗️2 Выполнять задание в точности и корректно отправлять доказательства\n\n❗️3 Заказывать услугу одного вида за 1 раз\n\n❗️4 Следовать в точности по инструкциям\n\n❗️5 Не рекламировать скам, обман\n\n❗️6 Рекламировать только в популярных приложениях и только каналы(группы)\n\n❗️7 Разрешить делать скриншот в канале в котором хотите сделать рекламу(Без этого исполнители не могут скинуть пруф что они сделали задание)')
 
-
-@router.message(Command('add_point'))
-async def add_point_admins_handler(message: Message):
-    if message.from_user.id in ADMINS:
-        await sql.add_points_sql(message.from_user.id)
-        await message.answer('Вам добавлен бал')
 
 @router.message(Command('issue'))
 async def issue_point_one_handler(message: Message, state: FSMContext):

@@ -10,7 +10,6 @@ async def start_sq():
     cur.execute("CREATE TABLE IF NOT EXISTS orders(number TEXT)")
     cur.execute("CREATE TABLE IF NOT EXISTS chats(chat_id TEXT)")
     cur.execute("CREATE TABLE IF NOT EXISTS fast_orders(number TEXT, des TEXT, percentage TEXT, users TEXT, customer TEXT, issuance TEXT)")
-    cur.execute("CREATE TABLE IF NOT EXISTS client_orders(id TEXT, number TEXT, des TEXT, proof TEXT)")
 
     cur.execute("INSERT INTO orders VALUES(?)", (0,))
     
@@ -61,20 +60,6 @@ async def update_fast_orders_sql(percentage, number):
     db.commit()
 
 
-# async def add_client_orders_sql(id, numbers, des):
-#     cur.execute("INSERT INTO client_orders VALUES(?, ?, ?, ?)", (id, numbers, des, '', ))
-#     db.commit()
-
-
-# async def update_client_orders_sql(id, photo_id):
-#     cur.execute("UPDATE client_orders SET proof = ? WHERE id = ?", (photo_id, id, ))
-#     db.commit()
-
-
-# async def get_client_orders_sql(id):
-#     return cur.execute("SELECT * FROM client_orders WHERE id = ?", (id, )).fetchone()
-
-
 async def get_fast_orders_number_sql(number):
     ord = cur.execute("SELECT * FROM fast_orders WHERE number = ?", (number, )).fetchone()
     ord = ord[2]
@@ -87,11 +72,6 @@ async def minus_balance_sql(id, point_m):
     point = int(people[1])
     cur.execute("UPDATE clients SET point = ? WHERE id = ?", (point-int(point_m), id, ))
     db.commit()
-
-
-# async def delete_client_orders_aql(id):
-#     cur.execute("DELETE FROM client_orders WHERE id = ?", (id, ))
-#     db.commit()
 
 
 async def return_points_sql(id, point_p):
@@ -114,6 +94,7 @@ async def delete_chats_sql():
 async def get_chats_sql():
     return cur.execute("SELECT chat_id FROM chats").fetchone()
 
+
 async def update_id_fast_orders_sql(number, id):
     users = cur.execute("SELECT * FROM fast_orders WHERE number = ?", (number, )).fetchone()
     users = users[3] + str(id) + '.'
@@ -128,6 +109,7 @@ async def issuance_update_sql(number, issuance):
 
 async def get_all_clients_sql():
     return cur.execute("SELECT * FROM clients").fetchall()
+
 
 async def subscription_update_sql(id):
     cur.execute("UPDATE clients SET subscription = ? WHERE id = ?", ('1', id, ))
