@@ -5,7 +5,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 client_reply_keyboards = ReplyKeyboardMarkup(keyboard=[
     [KeyboardButton(text='📈Заработать монеты'), KeyboardButton(text='🛒Купить услуги')],
-    [KeyboardButton(text='🏦Баланс')]
+    [KeyboardButton(text='🫂Реферальная система'), KeyboardButton(text='🏦Баланс')]
 
 ], resize_keyboard=True, input_field_placeholder='Введите...')
 

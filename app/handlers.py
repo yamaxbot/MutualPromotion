@@ -41,6 +41,11 @@ async def get_points_handler(message: Message):
     await message.answer(text=f'Ваш баланс монет:\n{points[1]}💰')
 
 
+@router.message(F.text == '🫂Реферальная система')
+async def referal_system_handler(message: Message):
+    await message.answer(text=f'Пока что ничего нет')
+
+
 @router.message(F.text == '📈Заработать монеты')
 async def earn_handler_one(message: Message, state: FSMContext):
     await state.clear()
