@@ -6,7 +6,7 @@ async def start_sq():
     db = sq.connect('data.db')
     cur = sq.Cursor(db)
     
-    cur.execute("CREATE TABLE IF NOT EXISTS clients(id TEXT, point TEXT, subscription TEXT)")
+    cur.execute("CREATE TABLE IF NOT EXISTS clients(id TEXT, point TEXT, subscription TEXT, referals TEXT)")
     cur.execute("CREATE TABLE IF NOT EXISTS orders(number TEXT)")
     cur.execute("CREATE TABLE IF NOT EXISTS chats(chat_id TEXT)")
     cur.execute("CREATE TABLE IF NOT EXISTS fast_orders(number TEXT, des TEXT, percentage TEXT, users TEXT, customer TEXT, issuance TEXT)")
@@ -16,7 +16,7 @@ async def start_sq():
     db.commit()
 
 async def add_all_clients_sql(id):
-    cur.execute("INSERT INTO clients VALUES(?, ?, ?)", (id, 0, '0'))
+    cur.execute("INSERT INTO clients VALUES(?, ?, ?, ?)", (id, 0, '0', '0'))
     db.commit()
 
 async def get_clients_sql(id):
@@ -145,4 +145,11 @@ async def issue_points_sql(id, point):
     client = cur.execute("SELECT * FROM clients WHERE id = ?", (id, )).fetchone()
     points = int(client[1]) + int(point)
     cur.execute("UPDATE clients SET point = ? WHERE id = ?", (points, id))
+    db.commit()
+
+
+async def add_one_referal_sql(id):
+    quantity_ref = cur.execute("SELECT * FROM clients WHERE id = ?", (id, )).fetchone()
+    quantity_ref = int(quantity_ref[3]) + 1
+    cur.execute("UPDATE clients SET referals = ? WHERE id = ?", (quantity_ref, id))
     db.commit()
