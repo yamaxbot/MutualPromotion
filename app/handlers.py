@@ -242,7 +242,7 @@ async def add_point_chanel(message: Message, state: FSMContext):
 async def check_chanel_handler(callback: CallbackQuery, bot: Bot):
     data = await sql.get_clients_sql(callback.from_user.id)
     await callback.answer()
-    if data[-1] == '0':
+    if data[2] == '0':
         member = await bot.get_chat_member(CHANEL, callback.from_user.id)
         if str(member.status) == 'ChatMemberStatus.MEMBER':
             await sql.add_two_points_sql(callback.from_user.id)
