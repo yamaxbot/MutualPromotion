@@ -10,6 +10,7 @@ async def start_sq():
     cur.execute("CREATE TABLE IF NOT EXISTS orders(number TEXT)")
     cur.execute("CREATE TABLE IF NOT EXISTS chats(chat_id TEXT)")
     cur.execute("CREATE TABLE IF NOT EXISTS fast_orders(number TEXT, des TEXT, percentage TEXT, users TEXT, customer TEXT, issuance TEXT)")
+    cur.execute("CREATE TABLE IF NOT EXISTS donate(id TEXT, points TEXT, key TEXT, time TEXT, return_stars TEXT)")
 
     cur.execute("INSERT INTO orders VALUES(?)", (0,))
     
@@ -152,4 +153,8 @@ async def add_one_referal_sql(id):
     quantity_ref = cur.execute("SELECT * FROM clients WHERE id = ?", (id, )).fetchone()
     quantity_ref = int(quantity_ref[3]) + 1
     cur.execute("UPDATE clients SET referals = ? WHERE id = ?", (quantity_ref, id))
+    db.commit()
+
+async def add_donate_sql(id, points, key, time):
+    cur.execute("INSERT INTO donate VALUES(?, ?, ?, ?, ?)", (id, points, key, time, '0', ))
     db.commit()
