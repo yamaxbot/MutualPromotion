@@ -284,3 +284,10 @@ async def issue_point_two_handler(message: Message, bot: Bot, state: FSMContext)
         await message.answer('Успешно!')
     except:
         await message.answer('Ошибка!')
+
+@router.message(F.text == 'Купить монеты')
+async def buy_point_stars_handler(message: Message):
+    if message.from_user.id in ADMINS:
+        await message.answer(text=f'Сколько монет вы хотите купить?\n\n1 Монета = 1 Звезда\n\nВыберите из списка ниже', reply_markup=kb.quantity_buy_point_keyboard)
+    else:
+        await message.answer('Эта функция пока что не доступна, скоро появится.')
