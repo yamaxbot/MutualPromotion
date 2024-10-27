@@ -166,5 +166,11 @@ async def update_return_stars_sql(key):
 async def get_user_donates_sql(id):
     return cur.execute("SELECT * FROM donate WHERE id = ?", (id,)).fetchall()
 
+
 async def get_id_donates_sql(key):
     return cur.execute("SELECT * FROM donate WHERE key = ?", (str(key),)).fetchone()
+
+
+async def delete_order_sql(number):
+    cur.execute("DELETE FROM fast_orders WHERE number = ?", (number, ))
+    db.commit()
