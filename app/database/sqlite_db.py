@@ -158,3 +158,13 @@ async def add_one_referal_sql(id):
 async def add_donate_sql(id, points, key, time):
     cur.execute("INSERT INTO donate VALUES(?, ?, ?, ?, ?)", (id, points, key, time, '0', ))
     db.commit()
+
+async def update_return_stars_sql(key):
+    cur.execute("UPDATE donate SET return_stars = ? WHERE key = ?", ('1', str(key),))
+    db.commit()
+
+async def get_user_donates_sql(id):
+    return cur.execute("SELECT * FROM donate WHERE id = ?", (id,)).fetchall()
+
+async def get_id_donates_sql(key):
+    return cur.execute("SELECT * FROM donate WHERE key = ?", (str(key),)).fetchone()

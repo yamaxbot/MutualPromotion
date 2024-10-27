@@ -1,4 +1,4 @@
-from aiogram.filters import Command
+from aiogram.filters import Command, CommandObject
 from aiogram.types import Message, CallbackQuery, LabeledPrice, PreCheckoutQuery
 from aiogram import F, Router
 from aiogram.fsm.state import State, StatesGroup
@@ -30,7 +30,7 @@ class newsletter_state(StatesGroup):
 
 @router.message(Command('start'))
 async def command_start_handler(message: Message):
-    await message.answer('🪄Это сервис Mutual_Promotion, где вы можете бесплатно получить подписки, лайки, коментарии, делая их другим\n\n🖍Когда вы подписываетесь, ставите лайки и коментарии другим, мы вам даём монеты, за которые в последующем, вы сможете покупать себе подписчиков, лайки и коментарии от реальных людей\n\n🪙1 Монета = 1 Услуга(1 подписчик, 1 лайк или 1комент)\n\n💎Свои первые 2 монеты, вы можете получить введя команду /point \n\n👨‍💻Правила вы можете прочитать введя команду /rules\n\n📈В последующем чтобы заработать монеты, вам нужно подписываться, ставить лайки, писать коментарии другим, нажав на кнопку "Заработать монеты"\n\n🛒Для того чтобы купить подписки, лайки, коментарии, нажмите кнопку "Купить услуги"\n\n🏦Чтобы посмотреть баланс монет, нажмите кнопку "Баланс"\n\n🫂Чтобы использовать реферальную систему, нажмите на кнопку "Реферальная система"\n\n🤵‍♂️Наш канал: @Mutual_Promotion_Channel', reply_markup=kb.client_reply_keyboards)
+    await message.answer('🪄Это сервис Mutual_Promotion, где вы можете бесплатно получить подписки, лайки, коментарии, делая их другим\n\n🖍Когда вы подписываетесь, ставите лайки и коментарии другим, мы вам даём монеты, за которые в последующем, вы сможете покупать себе подписчиков, лайки и коментарии от реальных людей\n\n🪙1 Монета = 1 Услуга(1 подписчик, 1 лайк или 1комент)\n\n💎Свои первые 2 монеты, вы можете получить введя команду /point \n\n👨‍💻Правила вы можете прочитать введя команду /rules\n\n📈В последующем чтобы заработать монеты, вам нужно подписываться, ставить лайки, писать коментарии другим, нажав на кнопку "Заработать монеты"\n\n🛒Для того чтобы купить подписки, лайки, коментарии, нажмите кнопку "Купить услуги"\n\n🏦Чтобы посмотреть баланс монет, нажмите кнопку "Баланс"\n\n🫂Чтобы использовать реферальную систему, нажмите на кнопку "Реферальная система"\n\n⭐️Также вы можете купить монеты за звезды в телеграм, нажав на кнопку "Купить монеты"\n\n🙋‍♂️Если есть какие то вопросы пишите сюда: @Mutual_Promotion2_Bot\n\n🤵‍♂️Наш канал: @Mutual_Promotion_Channel', reply_markup=kb.client_reply_keyboards)
     clients_or_no = await sql.get_clients_sql(message.from_user.id)
     if clients_or_no == None:
         await sql.add_all_clients_sql(message.from_user.id)
@@ -288,11 +288,9 @@ async def issue_point_two_handler(message: Message, bot: Bot, state: FSMContext)
 
 @router.message(F.text == '💫Купить монеты')
 async def buy_point_stars_handler(message: Message):
-    if message.from_user.id in ADMINS:
-        await message.answer(text=f'Сколько монет вы хотите купить?\n\n1 Монета = 1 Звезда\n\nВыберите из списка ниже', reply_markup=kb.quantity_buy_point_keyboard)
-    else:
-        await message.answer('Эта функция пока что не доступна, скоро появится.')
-
+    await message.answer(text=f'🤔Сколько монет вы хотите купить?\n\n🪙1 Монета = ⭐1 Звезда\n\n‼️Учтите что в среднем в день 1 заказ делают 15 человек, но заказов делать можно много!', reply_markup=kb.quantity_buy_point_keyboard)
+    
+    
 @router.callback_query(F.data == 'one_point_ik')
 async def one_point_plus_handler(callback: CallbackQuery):
     await callback.message.delete()
@@ -306,7 +304,7 @@ async def one_point_plus_handler(callback: CallbackQuery):
 async def five_point_plus_handler(callback: CallbackQuery):
     await callback.message.delete()
     await callback.message.answer_invoice(title='5 монет', 
-                                          description='🪙За 5 монету вы сможете купить 5 услугу',
+                                          description='🪙За 5 монет вы сможете купить 5 услуг',
                                           payload='five_point_payload',
                                           currency='XTR',
                                           prices=[LabeledPrice(label='XTR', amount=5)])
@@ -316,7 +314,7 @@ async def five_point_plus_handler(callback: CallbackQuery):
 async def ten_point_plus_handler(callback: CallbackQuery):
     await callback.message.delete()
     await callback.message.answer_invoice(title='10 монет', 
-                                          description='🪙За 10 монету вы сможете купить 10 услуг',
+                                          description='🪙За 10 монет вы сможете купить 10 услуг',
                                           payload='ten_point_payload',
                                           currency='XTR',
                                           prices=[LabeledPrice(label='XTR', amount=10)])
@@ -325,7 +323,7 @@ async def ten_point_plus_handler(callback: CallbackQuery):
 async def twentyfive_point_plus_handler(callback: CallbackQuery):
     await callback.message.delete()
     await callback.message.answer_invoice(title='25 монет', 
-                                          description='🪙За 25 монету вы сможете купить 25 услугу',
+                                          description='🪙За 25 монет вы сможете купить 25 услуг',
                                           payload='twentyfive_point_payload',
                                           currency='XTR',
                                           prices=[LabeledPrice(label='XTR', amount=25)])
@@ -343,19 +341,52 @@ async def procces_successful_payment_one_handler(message: Message):
     if payload_stars == 'one_point_payload':
         await sql.issue_points_sql(message.from_user.id, 1)
         await sql.add_donate_sql(message.from_user.id, '1', str(message.successful_payment.telegram_payment_charge_id), date)
-        await message.answer(text=f'Успешно!\n\nМы начислили вам 1 монету, спасибо за покупку!\n\nЕсли есть вопросы, пишите их боту: @Mutual_Promotion2_Bot')
+        await message.answer(text=f'✅Успешно!\n\n👥Мы начислили вам 1 монету, спасибо за покупку!\n\n🙋‍♂️Если есть вопросы, пишите их боту: @Mutual_Promotion2_Bot')
 
     if payload_stars == 'five_point_payload':
         await sql.issue_points_sql(message.from_user.id, 5)
         await sql.add_donate_sql(message.from_user.id, '5', str(message.successful_payment.telegram_payment_charge_id), date)
-        await message.answer(text=f'Успешно!\n\nМы начислили вам 5 монет, спасибо за покупку!\n\nЕсли есть вопросы, пишите их боту: @Mutual_Promotion2_Bot')
+        await message.answer(text=f'✅Успешно!\n\n👥Мы начислили вам 5 монет, спасибо за покупку!\n\n🙋‍♂️Если есть вопросы, пишите их боту: @Mutual_Promotion2_Bot')
 
     if payload_stars == 'ten_point_payload':
         await sql.issue_points_sql(message.from_user.id, 10)
         await sql.add_donate_sql(message.from_user.id, '10', str(message.successful_payment.telegram_payment_charge_id), date)
-        await message.answer(text=f'Успешно!\n\nМы начислили вам 10 монет, спасибо за покупку!\n\nЕсли есть вопросы, пишите их боту: @Mutual_Promotion2_Bot')
+        await message.answer(text=f'✅Успешно!\n\n👥Мы начислили вам 10 монет, спасибо за покупку!\n\n🙋‍♂️Если есть вопросы, пишите их боту: @Mutual_Promotion2_Bot')
 
     if payload_stars == 'twentyfive_point_payload':
         await sql.issue_points_sql(message.from_user.id, 25)
         await sql.add_donate_sql(message.from_user.id, '25', str(message.successful_payment.telegram_payment_charge_id), date)
-        await message.answer(text=f'Успешно!\n\nМы начислили вам 25 монет, спасибо за покупку!\n\nЕсли есть вопросы, пишите их боту: @Mutual_Promotion2_Bot')
+        await message.answer(text=f'✅Успешно!\n\n👥Мы начислили вам 25 монет, спасибо за покупку!\n\n🙋‍♂️Если есть вопросы, пишите их боту: @Mutual_Promotion2_Bot')
+
+
+@router.message(Command('refund'))
+async def refound_command_handler(message: Message, bot: Bot, command: CommandObject):
+    if message.from_user.id in ADMINS:
+        transaction_id = command.args
+        user_id = await sql.get_id_donates_sql(transaction_id)
+        try:
+            await bot.refund_star_payment(user_id=user_id[0], telegram_payment_charge_id=transaction_id)
+            await sql.update_return_stars_sql(transaction_id)
+            await message.answer('Успешно!')
+        except:
+            await message.answer(text=f'Что то пошло не так!')
+
+
+# @router.message(Command('user'))
+# async def command_user_handler(message: Message):
+#     if message.from_user.id in ADMINS:
+#         user_id = str(message.text).split()[1]
+#         data = await sql.get_clients_sql(user_id)
+#         await message.answer(text=f'id: {data[0]}\n\npoints: {data[1]}\n\nsubscription: {data[2]}\n\nreferals: {data[3]}')
+
+
+# @router.message(Command('user_donates'))
+# async def user_donates_command_handler(message: Message):
+#     if message.from_user.id in ADMINS:
+#         user_id = str(message.text).split()[1]
+#         data = sql.get_user_donates_sql(user_id)
+#         if data != None:
+#             await message.answer(text=str(data))
+
+
+# @router.message(Command())
