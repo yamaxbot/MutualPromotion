@@ -391,7 +391,7 @@ async def user_donates_command_handler(message: Message):
 
 
 @router.message(Command('delete_order'))
-async def orders_command_handler(message: Message):
+async def delete_orders_command_handler(message: Message):
     if message.from_user.id in ADMINS:
         number = str(message.text).split()[1]
         try:
@@ -399,3 +399,4 @@ async def orders_command_handler(message: Message):
             await message.answer('Успешно')
         except:
             await message.answer('Что то пошло не так')
+

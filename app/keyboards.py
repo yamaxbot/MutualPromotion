@@ -33,7 +33,7 @@ cancel_two_inline_keyboard = InlineKeyboardMarkup(inline_keyboard=[
 ])
 
 quantity_buy_point_keyboard = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='🪙1', callback_data='one_point_ik'), InlineKeyboardButton(text='🪙5', callback_data='five_point_ik')],
-    [InlineKeyboardButton(text='🪙10', callback_data='ten_point_ik')],
-    [InlineKeyboardButton(text='🪙25', callback_data='twentyfive_point_ik')]
+    [InlineKeyboardButton(text='🪙2', callback_data='one_point_ik'), InlineKeyboardButton(text='🪙10', callback_data='five_point_ik')],
+    [InlineKeyboardButton(text='🪙20', callback_data='ten_point_ik')],
+    [InlineKeyboardButton(text='🪙50', callback_data='twentyfive_point_ik')]
 ])
