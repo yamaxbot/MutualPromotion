@@ -295,7 +295,7 @@ async def buy_point_stars_handler(message: Message):
 async def one_point_plus_handler(callback: CallbackQuery):
     await callback.message.delete()
     await callback.message.answer_invoice(title='2 монеты', 
-                                          description='🪙За 2 монеты вы сможете купить 2 услугу',
+                                          description='🪙За 2 монеты вы сможете купить 2 услуги',
                                           payload='one_point_payload',
                                           currency='XTR',
                                           prices=[LabeledPrice(label='XTR', amount=1)])
