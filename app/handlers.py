@@ -287,7 +287,9 @@ async def issue_point_two_handler(message: Message, bot: Bot, state: FSMContext)
         await message.answer('Ошибка!')
 
 @router.message(F.text == '💫Купить монеты')
-async def buy_point_stars_handler(message: Message):
+async def buy_point_stars_handler(message: Message, state: FSMContext):
+    await state.clear()
+    await message.answer('Действие отменено')
     await message.answer(text=f'🤔Сколько монет вы хотите купить?\n\n🪙2 Монеты = ⭐1 Звезда\n\n‼️Учтите что в среднем в день 1 заказ делают 15 человек, но заказов делать можно много!', reply_markup=kb.quantity_buy_point_keyboard)
     
     
