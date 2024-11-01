@@ -29,7 +29,8 @@ class newsletter_state(StatesGroup):
 
 
 @router.message(Command('start'))
-async def command_start_handler(message: Message):
+async def command_start_handler(message: Message, state: FSMContext):
+    await state.clear()
     await message.answer('🪄Это сервис Mutual_Promotion, где вы можете бесплатно получить подписки, лайки, коментарии, делая их другим\n\n🖍Когда вы подписываетесь, ставите лайки и коментарии другим, мы вам даём монеты, за которые в последующем, вы сможете покупать себе подписчиков, лайки и коментарии от реальных людей\n\n🪙1 Монета = 1 Услуга(1 подписчик, 1 лайк или 1комент)\n\n💎Свои первые 2 монеты, вы можете получить введя команду /point \n\n👨‍💻Правила вы можете прочитать введя команду /rules\n\n📈В последующем чтобы заработать монеты, вам нужно подписываться, ставить лайки, писать коментарии другим, нажав на кнопку "Заработать монеты"\n\n🛒Для того чтобы купить подписки, лайки, коментарии, нажмите кнопку "Купить услуги"\n\n🏦Чтобы посмотреть баланс монет, нажмите кнопку "Баланс"\n\n🫂Чтобы использовать реферальную систему, нажмите на кнопку "Реферальная система"\n\n⭐️Также вы можете купить монеты за звезды в телеграм, нажав на кнопку "Купить монеты"\n\n🙋‍♂️Если есть какие то вопросы пишите сюда: @Mutual_Promotion2_Bot\n\n🤵‍♂️Наш канал: @Mutual_Promotion_Channel', reply_markup=kb.client_reply_keyboards)
     clients_or_no = await sql.get_clients_sql(message.from_user.id)
     if clients_or_no == None:
@@ -41,13 +42,15 @@ async def command_start_handler(message: Message):
 
 
 @router.message(F.text == '🏦Баланс')
-async def get_points_handler(message: Message):
+async def get_points_handler(message: Message, state: FSMContext):
+    await state.clear()
     points = await sql.get_clients_sql(message.from_user.id)
     await message.answer(text=f'Ваш баланс монет:\n{points[1]}💰')
 
 
 @router.message(F.text == '🫂Реферальная система')
-async def referal_system_handler(message: Message):
+async def referal_system_handler(message: Message, state: FSMContext):
+    await state.clear()
     quantity_ref = await sql.get_clients_sql(message.from_user.id)
     quantity_ref = quantity_ref[3]
     await message.answer(text=f'🤝Реферальная система:\n\n🏅За одного приглашённого человека мы даём 2 монеты\n\n❗️Прежде чем начинать приглашать рефералов, посмотрите правила введя команду /rules\n\n👀Ваша реферальная ссылка:\nhttps://t.me/Mutual_Promotion_Bot?start={message.from_user.id}\n\n🫂Количество рефералов: {quantity_ref}')
@@ -71,10 +74,29 @@ async def earn_handler_one(message: Message, state: FSMContext):
         await message.answer('🙅‍♂️Заказов пока что нет.\n\n🪙Если вы хотите получить бесплатную монету, введите команду /point')     
 
 
+@router.message(F.text == '💫Купить монеты')
+async def buy_point_stars_handler(message: Message, state: FSMContext):
+    await state.clear()
+    await message.answer(text=f'🤔Сколько монет вы хотите купить?\n\n🪙2 Монеты = ⭐1 Звезда\n\n‼️Учтите что в среднем в день 1 заказ делают 15 человек, но заказов делать можно много!', reply_markup=kb.quantity_buy_point_keyboard)
+    
+    
+@router.message(Command('rules'))
+async def rules_handler(message: Message, state: FSMContext):
+    await state.clear()
+    await message.answer('📜ПРАВИЛА:\n\n📜ПРИ ПОКУПКЕ УСЛУГ:\n❗️1 Давать полное описание заданию\n❗️2 Заказывать услугу одного вида за 1 раз(Иначе будут приходить одни и теже люди)\n❗️3 Рекламировать только в популярных приложениях и только каналы(группы)\n❗️4 Разрешить делать скриншот на своём канале \n\n❗️5 Посмотреть может ли пользователь заходить к вам на канал\n\n📜ПРИ ВЫПОЛНЕНИЯ ЗАДАНИЯ:\n❗️1 Выполнять задание в точности и корректно отправлять доказательства\n❗️2 Следовать в точности по инструкциям\n\n📜РЕФЕРАЛЬНАЯ СИСТЕМА:\n❗️1 Рефералы должны быть активными.')
+
+
+@router.message(Command('point'))
+async def add_point_chanel(message: Message, state: FSMContext):
+    await state.clear()
+    await message.answer(text=f'💬Подпишитесь на канал и нажмите кнопку проверить.\n\n✅Если вы подписались мы вам выдадим 2 монеты.\n\n{CHANEL}', reply_markup=kb.check_inline_keyboard)
+
+
 @router.message(F.text == '🛒Купить услуги')
 async def buy_otzuv_handler_one(message: Message, state: FSMContext):
+    await state.clear()
     points = await sql.get_clients_sql(message.from_user.id)
-    await message.answer(text=f'💰Напишите количество услуг, которое хотите купить.\n\n🪙1 Монета = 1 Услуга(1 подписчик, 1 лайк или 1 коментарий)\n\n✅Если вы не ознакомлены с правилами, нажмите кнопку Отменить и прочитайте правила воспользуясь командой /rules\n\n🏦Баланс: {points[1]} монет', reply_markup=kb.cancel_two_inline_keyboard)
+    await message.answer(text=f'💰Напишите количество услуг, которое хотите купить.\n\n🪙1 Монета = 1 Услуга(1 подписчик, 1 лайк или 1 коментарий)\n\n✅Если вы не ознакомлены с правилами, нажмите кнопку Отменить и прочитайте правила воспользуясь командой /rules\n\n🏦Баланс: {points[1]} монет')
     await state.set_state(buy_otzuv_state.price)
 
 @router.message(buy_otzuv_state.price)
@@ -85,7 +107,7 @@ async def buy_otzuv_handler_two(message: Message, state: FSMContext):
         if int(points) >= int(message.text) and int(points) > 0 and int(message.text) > 0:
             await state.update_data(price=message.text)
             await state.set_state(buy_otzuv_state.des)
-            await message.answer('📝Теперь введите полное описание того что нужно сделать одному человеку. И объязательно прикрепите ссылку.\n\n🌟Пример:\nНужно подписаться на канал @Mutual_Promotion_Channel\n\n🌗Если описание будет не полное, модерация отклонит ваш запрос. \n\n❌Если хотите отменить создание заказа, нажмите кнопку отменить.', reply_markup=kb.cancel_two_inline_keyboard)
+            await message.answer('📝Теперь введите полное описание того что нужно сделать одному человеку. И объязательно прикрепите ссылку.\n\n🌟Пример:\nНужно подписаться на канал @Mutual_Promotion_Channel\n\n🌗Если описание будет не полное, модерация отклонит ваш запрос. \n\n✅Если вы не ознакомлены с правилами, нажмите кнопку Отменить и прочитайте правила воспользуясь командой /rules')
         else: 
             await message.answer('⚠Произошла ошибка одно из нижеперечисленных:\n\n-У вас недостаточно монет\n\n-Вы некорректно ввели количество услуг')
             await state.clear()
@@ -234,11 +256,6 @@ async def newsletter_handler_two(message: Message, state: FSMContext):
         await message.answer(text=f'Сообщение разослано, {total} людей')
 
 
-@router.message(Command('point'))
-async def add_point_chanel(message: Message, state: FSMContext):
-    await message.answer(text=f'💬Подпишитесь на канал и нажмите кнопку проверить.\n\n✅Если вы подписались мы вам выдадим 2 монеты.\n\n{CHANEL}', reply_markup=kb.check_inline_keyboard)
-
-
 @router.callback_query(F.data == 'check')
 async def check_chanel_handler(callback: CallbackQuery, bot: Bot):
     data = await sql.get_clients_sql(callback.from_user.id)
@@ -263,11 +280,6 @@ async def two_cancel_state_handler(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_text(text=callback.message.text)
 
 
-@router.message(Command('rules'))
-async def rules_handler(message: Message):
-    await message.answer('📜ПРАВИЛА:\n\n📜ПРИ ПОКУПКЕ УСЛУГ:\n❗️1 Давать полное описание заданию\n❗️2 Заказывать услугу одного вида за 1 раз(Иначе будут приходить одни и теже люди)\n❗️3 Рекламировать только в популярных приложениях и только каналы(группы)\n❗️4 Разрешить делать скриншот на своём канале \n\n❗️5 Посмотреть может ли пользователь заходить к вам на канал\n\n📜ПРИ ВЫПОЛНЕНИЯ ЗАДАНИЯ:\n❗️1 Выполнять задание в точности и корректно отправлять доказательства\n❗️2 Следовать в точности по инструкциям\n\n📜РЕФЕРАЛЬНАЯ СИСТЕМА:\n❗️1 Рефералы должны быть активными.')
-
-
 @router.message(Command('issue'))
 async def issue_point_one_handler(message: Message, state: FSMContext):
     if message.from_user.id in ADMINS:
@@ -286,12 +298,6 @@ async def issue_point_two_handler(message: Message, bot: Bot, state: FSMContext)
     except:
         await message.answer('Ошибка!')
 
-@router.message(F.text == '💫Купить монеты')
-async def buy_point_stars_handler(message: Message, state: FSMContext):
-    await state.clear()
-    await message.answer('Действие отменено')
-    await message.answer(text=f'🤔Сколько монет вы хотите купить?\n\n🪙2 Монеты = ⭐1 Звезда\n\n‼️Учтите что в среднем в день 1 заказ делают 15 человек, но заказов делать можно много!', reply_markup=kb.quantity_buy_point_keyboard)
-    
     
 @router.callback_query(F.data == 'one_point_ik')
 async def one_point_plus_handler(callback: CallbackQuery):
@@ -402,3 +408,14 @@ async def delete_orders_command_handler(message: Message):
         except:
             await message.answer('Что то пошло не так')
 
+
+@router.message(Command('minus_point'))
+async def minus_point_command_admin_handler(message: Message, bot: Bot, state: FSMContext):
+    if message.from_user.id in ADMINS:
+        data = str(message.text).split('.')
+        try:
+            await sql.minus_admin_command_points_sql(data[1], data[2])
+            await bot.send_message(text=data[3], chat_id=data[1])
+            await message.answer('Успешно!')
+        except:
+            await message.answer('Ошибка!')

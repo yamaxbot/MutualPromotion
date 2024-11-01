@@ -174,3 +174,9 @@ async def get_id_donates_sql(key):
 async def delete_order_sql(number):
     cur.execute("DELETE FROM fast_orders WHERE number = ?", (number, ))
     db.commit()
+
+async def minus_admin_command_points_sql(id, point):
+    client = cur.execute("SELECT * FROM clients WHERE id = ?", (id, )).fetchone()
+    points = int(client[1]) - int(point)
+    cur.execute("UPDATE clients SET point = ? WHERE id = ?", (points, id))
+    db.commit()
