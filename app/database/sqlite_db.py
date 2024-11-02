@@ -180,3 +180,11 @@ async def minus_admin_command_points_sql(id, point):
     points = int(client[1]) - int(point)
     cur.execute("UPDATE clients SET point = ? WHERE id = ?", (points, id))
     db.commit()
+
+
+async def everyone_point_sql(point):
+    clients = cur.execute("SELECT * FROM clients").fetchall()
+    for client in clients:
+        points = int(client[1]) + int(point)
+        cur.execute("UPDATE clients SET point = ? WHERE id = ?", (points, client[0]))
+    db.commit()
