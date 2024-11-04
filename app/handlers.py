@@ -82,7 +82,7 @@ async def earn_handler_one(message: Message, state: FSMContext):
 @router.message(F.text == '💫Купить монеты')
 async def buy_point_stars_handler(message: Message, state: FSMContext):
     await state.clear()
-    await message.answer(text=f'🤔Сколько монет вы хотите купить?\n\n🪙2 Монеты = ⭐1 Звезда\n\n‼️Учтите что в среднем в день 1 заказ делают 15 человек, но заказов делать можно много!', reply_markup=kb.quantity_buy_point_keyboard)
+    await message.answer(text=f'🤔Сколько монет вы хотите купить?\n\n🪙2 Монеты = ⭐1 Звезда\n\n‼️Учтите что в среднем в день 1 заказ делают 25 человек, но заказов делать можно много!', reply_markup=kb.quantity_buy_point_keyboard)
     
     
 @router.message(Command('rules'))
