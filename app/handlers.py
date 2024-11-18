@@ -101,12 +101,12 @@ async def add_point_chanel(message: Message, state: FSMContext):
 async def buy_otzuv_handler_one(message: Message, state: FSMContext):
     await state.clear()
     points = await sql.get_clients_sql(message.from_user.id)
-    await message.answer(text=f'💰Напишите количество услуг, которое хотите купить.\n\n🪙1 Монета = 1 Услуга(1 подписчик, 1 лайк или 1 коментарий)\n\n✅Если вы не ознакомлены с правилами, прочитайте правила воспользуясь командой /rules\n\n🏦Баланс: {points[1]} монет')
+    await message.answer(text=f'💰Напишите количество услуг, которое хотите купить.\n\n🪙1 Монета = 1 Услуга(1 подписчик, 1 лайк или 1 коментарий)\n\n✅Если вы не ознакомлены с правилами, прочитайте правила воспользуясь командой /rules\n\n🏦Баланс: {points[1]} монет\n\n🧲Минимально можно купить 3 услуги')
     await state.set_state(buy_otzuv_state.price)
 
 @router.message(buy_otzuv_state.price)
 async def buy_otzuv_handler_two(message: Message, state: FSMContext):
-    if message.text.isdigit() == True:
+    if message.text.isdigit() == True and int(message.text) >= 3:
         points = await sql.get_clients_sql(message.from_user.id)
         points = points[1]
         if int(points) >= int(message.text) and int(points) > 0 and int(message.text) > 0:
@@ -117,7 +117,7 @@ async def buy_otzuv_handler_two(message: Message, state: FSMContext):
             await message.answer('⚠Произошла ошибка одно из нижеперечисленных:\n\n-У вас недостаточно монет\n\n-Вы некорректно ввели количество услуг')
             await state.clear()
     else:
-        await message.answer('👻Вы некорректно ввели стоимость. Действие отменено.')
+        await message.answer('👻Вы некорректно ввели стоимость, минимально можно купить 3 услуги. Действие отменено.')
         await state.clear()
 
 @router.message(buy_otzuv_state.des)
