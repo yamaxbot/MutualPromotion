@@ -11,6 +11,7 @@ async def start_sq():
     cur.execute("CREATE TABLE IF NOT EXISTS chats(chat_id TEXT)")
     cur.execute("CREATE TABLE IF NOT EXISTS fast_orders(number TEXT, des TEXT, percentage TEXT, users TEXT, customer TEXT, issuance TEXT)")
     cur.execute("CREATE TABLE IF NOT EXISTS donate(id TEXT, points TEXT, key TEXT, time TEXT, return_stars TEXT)")
+    cur.execute("CREATE TABLE IF NOT EXISTS promo(id_creator TEXT, name_promo TEXT, quantity_promo TEXT, points TEXT, made TEXT)")
 
     cur.execute("INSERT INTO orders VALUES(?)", (0,))
     
@@ -187,4 +188,24 @@ async def everyone_point_sql(point):
     for client in clients:
         points = int(client[1]) + int(point)
         cur.execute("UPDATE clients SET point = ? WHERE id = ?", (points, client[0]))
+    db.commit()
+
+
+async def add_promo_sql(creator_id, name, quantity, points):
+    cur.execute("INSERT INTO promo VALUES(?, ?, ?, ?, ?)", (creator_id, name, quantity, points, '.', ))
+    db.commit()
+
+
+async def get_name_promo_sql(name):
+    return cur.execute("SELECT * FROM promo WHERE name_promo = ?", (str(name),)).fetchone()
+
+async def get_all_name_promo_sql():
+    return cur.execute("SELECT * FROM promo").fetchall()
+
+async def update_promo_sql(use_id, name):
+    data = cur.execute("SELECT * FROM promo WHERE name_promo = ?", (name,)).fetchone()
+    quant = str(int(data[2])-1)
+    use_id_update = str(data[4]) + str(use_id) + '.'
+    cur.execute("UPDATE promo SET quantity_promo = ? WHERE name_promo = ?", (quant, name))
+    cur.execute("UPDATE promo SET made = ? WHERE name_promo = ?", (use_id_update, name))
     db.commit()

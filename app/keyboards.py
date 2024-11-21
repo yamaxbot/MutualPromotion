@@ -20,7 +20,7 @@ pass_otzuv_moderation_keyboard = InlineKeyboardMarkup(inline_keyboard=[
 ])
 
 cancel_inline_keyboard = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='Отменить', callback_data='cancel')]
+    [InlineKeyboardButton(text='Отменить', callback_data='cancel'), InlineKeyboardButton(text='Пожаловаться', callback_data='сomplain')]
 ])
 
 
@@ -33,7 +33,15 @@ cancel_two_inline_keyboard = InlineKeyboardMarkup(inline_keyboard=[
 ])
 
 quantity_buy_point_keyboard = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='🪙2', callback_data='one_point_ik'), InlineKeyboardButton(text='🪙10', callback_data='five_point_ik')],
-    [InlineKeyboardButton(text='🪙20', callback_data='ten_point_ik')],
-    [InlineKeyboardButton(text='🪙50', callback_data='twentyfive_point_ik')]
+    [InlineKeyboardButton(text='🪙2 - ⭐1', callback_data='one_point_ik'), InlineKeyboardButton(text='🪙10 - ⭐5', callback_data='five_point_ik')],
+    [InlineKeyboardButton(text='🪙20 - ⭐10', callback_data='ten_point_ik')],
+    [InlineKeyboardButton(text='🪙50 - ⭐25', callback_data='twentyfive_point_ik')]
 ])
+
+
+promo_keyboard = ReplyKeyboardMarkup(keyboard=[
+    [KeyboardButton(text='Купить промокод')],
+    [KeyboardButton(text='Ввести промокод')],
+    [KeyboardButton(text='Главная')]
+
+], resize_keyboard=True, input_field_placeholder='Введите...')

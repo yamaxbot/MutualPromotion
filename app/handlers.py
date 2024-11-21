@@ -9,7 +9,7 @@ import app.database.sqlite_db as sql
 from config import ADMINS, CHANEL
 import random
 import datetime
-
+import string 
 
 router = Router()
 
@@ -26,6 +26,13 @@ class earn_state(StatesGroup):
 
 class newsletter_state(StatesGroup):
     msg = State()
+
+class buy_promo_state(StatesGroup):
+    points = State()
+    quantity = State()
+
+class use_promo_state(StatesGroup):
+    name = State()
 
 
 @router.message(Command('start'))
@@ -66,7 +73,7 @@ async def earn_handler_one(message: Message, state: FSMContext):
     await state.clear()
     order = await sql.new_get_all_fast_orders_sql(message.from_user.id)
     if len(order) != 0:
-        rand_order = random.choice(order)
+        rand_order = order[-1]
         users = str(rand_order[3]).split('.')
         await sql.update_fast_orders_sql(int(rand_order[2])-1, rand_order[0])
         await sql.update_id_fast_orders_sql(rand_order[0], message.from_user.id)
@@ -76,7 +83,7 @@ async def earn_handler_one(message: Message, state: FSMContext):
         await message.answer('📸Отправьте фото где отчётливо видно что вы выполнили задание.\n\n✅Если на фото не будет отчётливо видно что задание выполнено, модерация не одобрит ваше задание.\n\n❌Если не хотите выполнять задание, нажмите кнопку Отменить, которая находится чуть выше.')
         await state.set_state(earn_state.photo)
     else:
-        await message.answer('🙅‍♂️Заказов пока что нет.\n\n🪙Если вы хотите получить бесплатную монету, введите команду /point')     
+        await message.answer('🙅‍♂️Заказов пока что нет.\n\n🪙Если вы хотите получить бесплатную монету, введите команду /point\n\n⭐Если вам срочно нужны монеты, вы можете их купить нажав на кнопку\n"💫Купить услуги"')     
 
 
 @router.message(F.text == '💫Купить монеты')
@@ -85,17 +92,98 @@ async def buy_point_stars_handler(message: Message, state: FSMContext):
     await message.answer(text=f'🤔Сколько монет вы хотите купить?\n\n🪙2 Монеты = ⭐1 Звезда\n\n‼️Учтите что в среднем в день 1 заказ делают 25 человек, но заказов делать можно много!', reply_markup=kb.quantity_buy_point_keyboard)
     
     
+@router.message(Command('promo'))
+async def promo_handler(message: Message, state: FSMContext):
+    await state.clear()
+    await message.answer('Это система промокодов', reply_markup=kb.promo_keyboard)
+
+
+@router.message(F.text == 'Купить промокод')
+async def buy_promo_one_handler(message: Message, state: FSMContext):
+    money = await sql.get_clients_sql(message.from_user.id)
+    await state.clear()
+    if int(money[1]) > 10:
+        await message.answer(text=f'Создание промокода стоит 10 монет, минимальное количество монет для создание промокода 11\n\nВаш баланс: {money[1]}, с которых мы автоматически спишем 10 монет за создание промокода, на создание промокода у вас есть {int(money[1])-10} монет\n\nВведите сколько монет будет выдаваться за 1 использование промокода')
+        await state.set_state(buy_promo_state.points)
+    else:
+        await message.answer('У вас недостаточно монет, чтобы создать промокод требуется минимум 11 монет')
+        await state.clear()
+
+@router.message(buy_promo_state.points)
+async def buy_promo_two_handler(message: Message, state: FSMContext):
+    if str(message.text).isdigit() == True:
+        money = await sql.get_clients_sql(message.from_user.id)
+        if int(money[1])-10 >= int(message.text):
+            await state.update_data(points=message.text)
+            await message.answer(text=f'Теперь введите сколько активаций можт быть у промокода, имейте ввиду что для каждого промокода своё количество монет, которое вы должны покрыть\n\nМаксимально вы можете сделать активаций: {(int(money[1])-10)//int(message.text)}')
+            await state.set_state(buy_promo_state.quantity)
+        else:
+            await message.answer('У вас недостаточно монет. Действие отменено!')
+            await state.clear()
+    else:
+        await message.answer('Вы ввели не число, действие отменено!')
+        await state.clear()
+
+        
+@router.message(buy_promo_state.quantity)
+async def buy_promo_tree_handler(message: Message, state: FSMContext):
+    if str(message.text).isdigit() == True:
+        money = await sql.get_clients_sql(message.from_user.id)
+        await state.update_data(quantity=message.text)
+        data = await state.get_data()
+        if (int(money[1])-10)//int(message.text) >= int(data['quantity']):
+            while True:
+                promokode = [random.choice(['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','0','1','2','3','4','5','6','7','8','9']) for i in range(8)]
+                promokode = promokode[0]+promokode[1]+promokode[2]+promokode[3]+promokode[4]+promokode[5]+promokode[6]+promokode[7]
+                promo = await sql.get_name_promo_sql(promokode)
+                if promo == None:
+                    break
+            await message.answer(text=f'Промокод создан!\n\nЗа активацию промокод даёт: {data["points"]}\n\nКоличество активаций у промокода: {data["quantity"]}\n\nВаш промокод: {promokode}')
+            await sql.add_promo_sql(message.from_user.id, promokode, data['quantity'], data['points'])
+            await state.clear()
+            await sql.minus_balance_sql(message.from_user.id, int(data['points'])*int(data['points'])+10)
+        else:
+            await message.answer('У вас недостаточно монет, действие отменено!')
+            await state.clear()
+    else:
+        await message.answer('Вы ввели не число, действие отменено!')
+        await state.clear()
+
+
+@router.message(F.text == 'Ввести промокод')
+async def use_promo_one_handler(message: Message, state: FSMContext):
+    await message.answer('Введите промокод без лишних символов')
+    await state.set_state(use_promo_state.name)
+
+@router.message(use_promo_state.name)
+async def use_promo_two_handler(message: Message, state: FSMContext):
+    all_promo = await sql.get_all_name_promo_sql()
+    flag = False
+    for promo in all_promo:
+        use_user = str(promo[4]).split('.')
+        if message.text != promo[0] and promo[0] != str(message.from_user.id) and str(message.from_user.id) not in use_user:
+            await sql.issue_points_sql(str(message.from_user.id), int(promo[3]))
+            data = await sql.update_promo_sql(str(message.from_user.id), promo[1])
+            await message.answer(text=f'{data}')
+            await message.answer(text=f'Промокод успешно введён, вы получили {promo[3]}')
+            await state.clear()
+            flag = True
+            break
+    await message.answer(text=f'{promo}')
+    if flag == False:
+        await message.answer('Промокода не существует или он уже неактивен')
+        await state.clear()
+    
+
 @router.message(Command('rules'))
 async def rules_handler(message: Message, state: FSMContext):
     await state.clear()
-    await message.answer('📜ПРИ ПОКУПКЕ УСЛУГ:\n❗️1 Давать полное описание заданию\n❗️2 Заказывать услугу одного вида за 1 раз(Иначе будут приходить одни и теже люди)\n❗️3 Рекламировать только в популярных приложениях и только каналы(группы)\n❗️4 Разрешить делать скриншот на своём канале\n❗️5 Посмотреть может ли пользователь заходить к вам на канал\n\n📜ПРИ ВЫПОЛНЕНИЯ ЗАДАНИЯ:\n❗️1 Выполнять задание в точности и корректно отправлять доказательства\n❗️2 Следовать в точности по инструкциям\n\n📜РЕФЕРАЛЬНАЯ СИСТЕМА:\n❗️1 Рефералы должны быть активными.')
-
+    await message.answer('📜ПРИ ПОКУПКЕ УСЛУГ:\n❗️1 Давать полное описание заданию\n❗️2 Заказывать услугу одного вида за 1 раз(Иначе будут приходить одни и теже люди)\n❗️3 Рекламировать только в популярных приложениях и только каналы(группы)\n❗️4 Разрешить делать скриншот на своём канале\n❗️5 Посмотреть может ли пользователь заходить к вам на канал\n\n📜ПРИ ВЫПОЛНЕНИЯ ЗАДАНИЯ:\n❗️1 Выполнять задание в точности и корректно отправлять доказательства\n❗️2 Следовать в точности по инструкциям\n❗️3 Если заказ не выполняет правила нажмите кнопку "Пожаловаться"\n\n📜РЕФЕРАЛЬНАЯ СИСТЕМА:\n❗️1 Рефералы должны быть активными.')
 
 @router.message(Command('point'))
 async def add_point_chanel(message: Message, state: FSMContext):
     await state.clear()
     await message.answer(text=f'💬Подпишитесь на канал и нажмите кнопку проверить.\n\n✅Если вы подписались мы вам выдадим 2 монеты.\n\n{CHANEL}', reply_markup=kb.check_inline_keyboard)
-
 
 @router.message(F.text == '🛒Купить услуги')
 async def buy_otzuv_handler_one(message: Message, state: FSMContext):
@@ -132,7 +220,6 @@ async def buy_otzuv_handler_tree(message: Message, state: FSMContext, bot: Bot):
     await sql.minus_balance_sql(message.from_user.id, data["price"])
     await bot.send_message(text=f"Приняте заказа:::{int(quality[0][0])+1}\n\n:::Описание:::{data['des']}\n\n:::Количество_услуг:::{data['price']}\n\n:::id_покупателя:::{message.from_user.id}", chat_id=chat_id[0], reply_markup=kb.buy_otzuv_moderation_)
 
-
 @router.callback_query(F.data == 'approve')
 async def approve_buy_otzuv_handler(callback: CallbackQuery, bot: Bot):
     await callback.answer()
@@ -146,7 +233,6 @@ async def approve_buy_otzuv_handler(callback: CallbackQuery, bot: Bot):
         await bot.send_message(text=f'🌟Модерация приняла ваш заказ номер {data_buy[1]}, ожидайте выбранной услуги', chat_id=data_buy[7])
     except:
         pass
-
 
 @router.callback_query(F.data == 'reject')
 async def approve_buy_otzuv_handler(callback: CallbackQuery, bot: Bot):
@@ -162,7 +248,6 @@ async def approve_buy_otzuv_handler(callback: CallbackQuery, bot: Bot):
     except:
         pass
 
-
 @router.message(earn_state.photo)
 async def earn_handler_two(message: Message, state: FSMContext, bot: Bot):
     if message.photo:
@@ -173,7 +258,6 @@ async def earn_handler_two(message: Message, state: FSMContext, bot: Bot):
         await bot.send_photo(photo=message.photo[-1].file_id, caption=f'Выдача заказа: {data_state["name"][0]}\n\nid_исполнителя: {data_state["name"][1]}', chat_id=chat_id[0], reply_markup=kb.pass_otzuv_moderation_keyboard)
     else:
         await message.answer('👻Это не фото, отправьте фото или нажмите кнопку "Отменить" в сообщении выше')
-
 
 @router.callback_query(F.data == 'approve_pass')
 async def approve_pass_handler(callback: CallbackQuery, bot: Bot):
@@ -206,20 +290,17 @@ async def reject_pass_handler(callback: CallbackQuery, bot: Bot):
     except:
         pass
 
-
 @router.message(Command('add_chat'))
 async def add_chat1_handler(message: Message):
     if message.from_user.id in ADMINS:
         await sql.add_chats_sql(message.chat.id)
         await message.answer('Чат добавлен')
 
-
 @router.message(Command('delete_chat'))
 async def delete_chat1_handler(message: Message):
     if message.from_user.id in ADMINS:
         await sql.delete_chats_sql()
         await message.answer('Чаты удалены')
-
 
 @router.callback_query(F.data == 'cancel')
 async def cancel_handler(callback: CallbackQuery, state: FSMContext):
@@ -230,6 +311,16 @@ async def cancel_handler(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer('👻Вы отменили задание')
     await callback.message.edit_text(text=callback.message.text)
 
+@router.callback_query(F.data == 'сomplain')
+async def сomplain_handler(callback: CallbackQuery, state: FSMContext, bot: Bot):
+    await state.clear()
+    await callback.answer()
+    number = str(callback.message.text).split()[1]
+    await sql.get_fast_orders_number_sql(number)
+    await callback.message.answer('👻Вы пожаловались на данный заказ, вы можете выполнять другие заказы!')
+    await callback.message.edit_text(text=callback.message.text)
+    chat_id = await sql.get_chats_sql()
+    await bot.send_message(text=f'Жалоба от: {callback.from_user.id}\n\nЖалоба на заказ: {number}', chat_id=chat_id[0])
 
 @router.message(Command('statistics'))
 async def statistics_handler(message: Message):
@@ -238,7 +329,6 @@ async def statistics_handler(message: Message):
         activ = await sql.active_orders_sql()
         order = await sql.get_number_sql()
         await message.answer(text=f'👻Статистика: \n\n🌟Количество клиентов за всё время: {len(clients)}\n\n🌪Всего заказов за всё время: {order[0][0]}\n\n🧲Количество активных заказов: {len(activ)}')
-
 
 @router.message(Command('newsletter'))
 async def newsletter_handler_one(message: Message, state: FSMContext):
@@ -260,7 +350,6 @@ async def newsletter_handler_two(message: Message, state: FSMContext):
                 continue
         await message.answer(text=f'Сообщение разослано, {total} людей')
 
-
 @router.callback_query(F.data == 'check')
 async def check_chanel_handler(callback: CallbackQuery, bot: Bot):
     data = await sql.get_clients_sql(callback.from_user.id)
@@ -276,7 +365,6 @@ async def check_chanel_handler(callback: CallbackQuery, bot: Bot):
     else:
         await callback.message.answer('Вы уже пользовались данной функцией. Она одноразовая.')
 
-
 @router.callback_query(F.data == 'cancel_two')
 async def two_cancel_state_handler(callback: CallbackQuery, state: FSMContext):
     await state.clear()
@@ -284,13 +372,11 @@ async def two_cancel_state_handler(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer('Вы отменили действие')
     await callback.message.edit_text(text=callback.message.text)
 
-
 @router.message(Command('issue'))
 async def issue_point_one_handler(message: Message, state: FSMContext):
     if message.from_user.id in ADMINS:
         await state.set_state(issue_point_state.des)
         await message.answer('Введите описание')
-
 
 @router.message(issue_point_state.des)
 async def issue_point_two_handler(message: Message, bot: Bot, state: FSMContext):
@@ -303,7 +389,6 @@ async def issue_point_two_handler(message: Message, bot: Bot, state: FSMContext)
     except:
         await message.answer('Ошибка!')
 
-    
 @router.callback_query(F.data == 'one_point_ik')
 async def one_point_plus_handler(callback: CallbackQuery):
     await callback.message.delete()
@@ -322,7 +407,6 @@ async def five_point_plus_handler(callback: CallbackQuery):
                                           currency='XTR',
                                           prices=[LabeledPrice(label='XTR', amount=5)])
 
-
 @router.callback_query(F.data == 'ten_point_ik')
 async def ten_point_plus_handler(callback: CallbackQuery):
     await callback.message.delete()
@@ -340,7 +424,6 @@ async def twentyfive_point_plus_handler(callback: CallbackQuery):
                                           payload='twentyfive_point_payload',
                                           currency='XTR',
                                           prices=[LabeledPrice(label='XTR', amount=25)])
-
 
 @router.pre_checkout_query()
 async def pre_checkout_handler(pcq: PreCheckoutQuery):
@@ -370,7 +453,6 @@ async def procces_successful_payment_one_handler(message: Message):
         await sql.issue_points_sql(message.from_user.id, 50)
         await sql.add_donate_sql(message.from_user.id, '50', str(message.successful_payment.telegram_payment_charge_id), date)
         await message.answer(text=f'✅Успешно!\n\n👥Мы начислили вам 50 монет, спасибо за покупку!\n\n🙋‍♂️Если есть вопросы, пишите их боту: @Mutual_Promotion2_Bot')
-
 
 @router.message(Command('refund'))
 async def refound_command_handler(message: Message, bot: Bot, command: CommandObject):
