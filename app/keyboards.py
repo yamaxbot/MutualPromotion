@@ -4,7 +4,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 
 client_reply_keyboards = ReplyKeyboardMarkup(keyboard=[
-    [KeyboardButton(text='💫Купить монеты')],
+    [KeyboardButton(text='💫Купить монеты'), KeyboardButton(text='🎁Промокоды')],
     [KeyboardButton(text='📈Заработать монеты'), KeyboardButton(text='🛒Купить услуги')],
     [KeyboardButton(text='🫂Реферальная система'), KeyboardButton(text='🏦Баланс')]
 
@@ -40,8 +40,8 @@ quantity_buy_point_keyboard = InlineKeyboardMarkup(inline_keyboard=[
 
 
 promo_keyboard = ReplyKeyboardMarkup(keyboard=[
-    [KeyboardButton(text='Создать промокод')],
-    [KeyboardButton(text='Ввести промокод')],
-    [KeyboardButton(text='На главную')]
+    [KeyboardButton(text='🛒Создать промокод')],
+    [KeyboardButton(text='✒️Ввести промокод')],
+    [KeyboardButton(text='🔙На главную')]
 
 ], resize_keyboard=True, input_field_placeholder='Введите...')
