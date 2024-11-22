@@ -40,8 +40,8 @@ quantity_buy_point_keyboard = InlineKeyboardMarkup(inline_keyboard=[
 
 
 promo_keyboard = ReplyKeyboardMarkup(keyboard=[
-    [KeyboardButton(text='Купить промокод')],
+    [KeyboardButton(text='Создать промокод')],
     [KeyboardButton(text='Ввести промокод')],
-    [KeyboardButton(text='Главная')]
+    [KeyboardButton(text='На главную')]
 
 ], resize_keyboard=True, input_field_placeholder='Введите...')

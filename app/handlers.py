@@ -48,6 +48,9 @@ async def command_start_handler(message: Message, state: FSMContext):
             await sql.add_two_points_sql(referal_id)
 
 
+@router.message(F.text == 'На главную')
+async def home_keyboard_handler(message: Message, state: FSMContext):
+    await message.answer('Вы вернулись на главную', reply_markup=kb.client_reply_keyboards)
 @router.message(Command('help'))
 async def command_help_handler(message: Message):
     await message.answer('📈Чтобы заработать монеты, вам нужно подписываться, ставить лайки, писать коментарии другим, нажав на кнопку "Заработать монеты"\n\n🛒Для того чтобы купить подписки, лайки, коментарии, нажмите кнопку "Купить услуги"\n\n🏦Чтобы посмотреть баланс монет, нажмите кнопку "Баланс"\n\n🫂Чтобы использовать реферальную систему, нажмите на кнопку "Реферальная система"\n\n⭐️Также вы можете купить монеты за звезды в телеграм, нажав на кнопку "Купить монеты"', reply_markup=kb.client_reply_keyboards)
@@ -95,10 +98,10 @@ async def buy_point_stars_handler(message: Message, state: FSMContext):
 @router.message(Command('promo'))
 async def promo_handler(message: Message, state: FSMContext):
     await state.clear()
-    await message.answer('Это система промокодов', reply_markup=kb.promo_keyboard)
+    await message.answer('Это система промокодов!\n\nСоздание промокода стоит 10 монет\n\nТакже нужно заплатить за промокод столько монет, сколько монет расчитано на промокод\n\n1 монета которая выдаётся в промокоде = 1 ваша монета\n\n1 человек может воспользоваться определённым промокодом только 1 раз\n\nЕсли хотите вернуться на главную, нажмите кнопку "На главную"', reply_markup=kb.promo_keyboard)
 
 
-@router.message(F.text == 'Купить промокод')
+@router.message(F.text == 'Создать промокод')
 async def buy_promo_one_handler(message: Message, state: FSMContext):
     money = await sql.get_clients_sql(message.from_user.id)
     await state.clear()
@@ -115,7 +118,7 @@ async def buy_promo_two_handler(message: Message, state: FSMContext):
         money = await sql.get_clients_sql(message.from_user.id)
         if int(money[1])-10 >= int(message.text):
             await state.update_data(points=message.text)
-            await message.answer(text=f'Теперь введите сколько активаций можт быть у промокода, имейте ввиду что для каждого промокода своё количество монет, которое вы должны покрыть\n\nМаксимально вы можете сделать активаций: {(int(money[1])-10)//int(message.text)}')
+            await message.answer(text=f'Теперь введите сколько активаций можт быть у промокода, имейте ввиду что для каждого промокода своё количество монет, которое вы указывали ранее.\n\nМаксимально вы можете сделать активаций: {(int(money[1])-10)//int(message.text)}')
             await state.set_state(buy_promo_state.quantity)
         else:
             await message.answer('У вас недостаточно монет. Действие отменено!')
@@ -141,7 +144,7 @@ async def buy_promo_tree_handler(message: Message, state: FSMContext):
             await message.answer(text=f'Промокод создан!\n\nЗа активацию промокод даёт: {data["points"]}\n\nКоличество активаций у промокода: {data["quantity"]}\n\nВаш промокод: {promokode}')
             await sql.add_promo_sql(message.from_user.id, promokode, data['quantity'], data['points'])
             await state.clear()
-            await sql.minus_balance_sql(message.from_user.id, int(data['points'])*int(data['points'])+10)
+            await sql.minus_balance_sql(message.from_user.id, (int(data['points'])*int(data['quantity'])+10))
         else:
             await message.answer('У вас недостаточно монет, действие отменено!')
             await state.clear()
@@ -161,15 +164,13 @@ async def use_promo_two_handler(message: Message, state: FSMContext):
     flag = False
     for promo in all_promo:
         use_user = str(promo[4]).split('.')
-        if message.text != promo[0] and promo[0] != str(message.from_user.id) and str(message.from_user.id) not in use_user:
+        if message.text == promo[1] and str(message.from_user.id) not in use_user:
             await sql.issue_points_sql(str(message.from_user.id), int(promo[3]))
-            data = await sql.update_promo_sql(str(message.from_user.id), promo[1])
-            await message.answer(text=f'{data}')
+            await sql.update_promo_sql(message.from_user.id, promo[1])
             await message.answer(text=f'Промокод успешно введён, вы получили {promo[3]}')
             await state.clear()
             flag = True
             break
-    await message.answer(text=f'{promo}')
     if flag == False:
         await message.answer('Промокода не существует или он уже неактивен')
         await state.clear()
