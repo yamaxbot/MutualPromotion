@@ -166,7 +166,7 @@ async def use_promo_two_handler(message: Message, state: FSMContext):
     flag = False
     for promo in all_promo:
         use_user = str(promo[4]).split('.')
-        if message.text == promo[1] and str(message.from_user.id) not in use_user:
+        if message.text == promo[1] and str(message.from_user.id) not in use_user and int(promo[2]) > 0:
             await sql.issue_points_sql(str(message.from_user.id), int(promo[3]))
             await sql.update_promo_sql(message.from_user.id, promo[1])
             await message.answer(text=f'🎉Промокод успешно введён, вы получили {promo[3]} монет')
