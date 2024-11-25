@@ -195,6 +195,31 @@ async def buy_otzuv_handler_one(message: Message, state: FSMContext):
     await message.answer(text=f'💰Напишите количество услуг, которое хотите купить.\n\n🪙1 Монета = 1 Услуга(1 подписчик, 1 лайк или 1 коментарий)\n\n✅Если вы не ознакомлены с правилами, прочитайте правила воспользуясь командой /rules\n\n🏦Баланс: {points[1]} монет\n\n🧲Минимально можно купить 3 услуги')
     await state.set_state(buy_otzuv_state.price)
 
+@router.message(F.text == 'Буст')
+async def bust_main_handler(message: Message, state: FSMContext):
+    await state.clear()
+    data = await sql.get_my_active_order(message.from_user.id)
+    await message.answer(text=f'Здесь ты можешь купить бусты для всех своих заданий, при покупке буста, все ваши задания становятся на первое место\n\nБуст для одного задания стоит 1 монету\n\nУ вас всего {len(data)} заданий, следовательно буст будет стоить {len(data)} монет\n\nЕсли хотите увидеть все ваши задания, нажмите на кнопку "Мои активные задания\n\nЕсли хотите купить буст, нажмите на кнопку "Купить буст""', reply_markup=kb.bust_main_inline_keyboard)
+
+@router.callback_query(F.data == 'active_orders_cd')
+async def my_active_order_handler(callback: CallbackQuery):
+    await callback.answer()
+    await callback.message.delete()
+    data = await sql.get_my_active_order(callback.from_user.id)
+    stroka = 'Все ваши задания:\n\n'
+    for i in range(1, len(data)+1):
+        exercise = str(data[i-1][1]).replace('\n\n', '\n')
+        stroka = stroka + f'{i}) Заказ {data[i-1][0]}:\n{exercise}Осталось услуг: {data[i-1][2]}\n\n'
+    await callback.message.answer(text=str(stroka), reply_markup=kb.back_my_active_order_inline_keyboard, disable_web_page_preview=True)
+
+@router.callback_query(F.data == 'back_activ_order')
+async def back_activ_order_handler(callback: CallbackQuery):
+    await callback.answer()
+    await callback.message.delete()
+    data = await sql.get_my_active_order(callback.from_user.id)
+    await callback.message.answer(text=f'Здесь ты можешь купить бусты для всех своих заданий, при покупке буста, все ваши задания становятся на первое место\n\nБуст для одного задания стоит 1 монету\n\nУ вас всего {len(data)} заданий, следовательно буст будет стоить {len(data)} монет\n\nЕсли хотите увидеть все ваши задания, нажмите на кнопку "Мои активные задания\n\nЕсли хотите купить буст, нажмите на кнопку "Купить буст""', reply_markup=kb.bust_main_inline_keyboard)
+
+
 @router.message(buy_otzuv_state.price)
 async def buy_otzuv_handler_two(message: Message, state: FSMContext):
     if message.text.isdigit() == True and int(message.text) >= 3:

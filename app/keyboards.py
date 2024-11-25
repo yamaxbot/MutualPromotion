@@ -45,3 +45,14 @@ promo_keyboard = ReplyKeyboardMarkup(keyboard=[
     [KeyboardButton(text='🔙На главную')]
 
 ], resize_keyboard=True, input_field_placeholder='Введите...')
+
+
+bust_main_inline_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text='Купить буст', callback_data='buy_bust')],
+    [InlineKeyboardButton(text='Мои активные задания', callback_data='active_orders_cd')]
+])
+
+
+back_my_active_order_inline_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text='Назад', callback_data='back_activ_order')],
+])

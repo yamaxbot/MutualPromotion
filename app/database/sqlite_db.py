@@ -209,3 +209,12 @@ async def update_promo_sql(use_id, name):
     cur.execute("UPDATE promo SET quantity_promo = ? WHERE name_promo = ?", (quant, name))
     cur.execute("UPDATE promo SET made = ? WHERE name_promo = ?", (use_id_update, name))
     db.commit()
+
+
+async def get_my_active_order(id):
+    data = cur.execute("SELECT * FROM fast_orders WHERE customer = ?", (str(id),)).fetchall()
+    ls = []
+    for d in data:
+        if int(d[2]) > 0:
+            ls.append(d)
+    return ls
