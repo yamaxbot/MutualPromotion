@@ -41,12 +41,13 @@ async def command_start_handler(message: Message, state: FSMContext):
     await message.answer('🪄Это сервис Mutual_Promotion, где вы можете бесплатно получить подписки, лайки и комментарии, подписываясь, ставя коментарии и лайки другим\n\n🖍Когда вы подписываетесь, ставите лайки и коментарии другим, мы вам даём монеты, за которые в последующем, вы сможете покупать себе подписчиков, лайки и коментарии от реальных людей\n\n🪙1 Монета = 1 Услуга(1 подписчик, 1 лайк или 1комент)\n\n💎Свои первые 2 монеты, вы можете получить введя команду /point \n\n📜Правила вы можете прочитать введя команду /rules\n\n💬Инструкцию как работать с ботом, вы можете узнать введя команду /help\n\n❓Если есть какие то вопросы пишите сюда: @Mutual_Promotion2_Bot\n\n🤵‍♂️Наш канал: @Mutual_Promotion_Channel', reply_markup=kb.client_reply_keyboards)
     clients_or_no = await sql.get_clients_sql(message.from_user.id)
     if clients_or_no == None:
-        await sql.add_all_clients_sql(message.from_user.id)
         if len(str(message.text).split()) == 2:
             referal_id = str(message.text).split()[1]
+            await sql.add_all_clients_sql(message.from_user.id, str(referal_id))
             await sql.add_one_referal_sql(referal_id)
-            await sql.add_two_points_sql(referal_id)
-
+        else:
+            await sql.add_all_clients_sql(message.from_user.id)
+            
 
 @router.message(F.text == '🔙На главную')
 async def home_keyboard_handler(message: Message, state: FSMContext):
@@ -55,7 +56,7 @@ async def home_keyboard_handler(message: Message, state: FSMContext):
 
 @router.message(Command('help'))
 async def command_help_handler(message: Message):
-    await message.answer('📈Чтобы заработать монеты, вам нужно подписываться, ставить лайки, писать коментарии другим, нажав на кнопку "Заработать монеты"\n\n🛒Для того чтобы купить подписки, лайки, коментарии, нажмите кнопку "Купить услуги"\n\n🏦Чтобы посмотреть баланс монет, нажмите кнопку "Баланс"\n\n🫂Чтобы использовать реферальную систему, нажмите на кнопку "Реферальная система"\n\n⭐️Также вы можете купить монеты за звезды в телеграм, нажав на кнопку "Купить монеты"', reply_markup=kb.client_reply_keyboards)
+    await message.answer('📈Чтобы заработать монеты, вам нужно подписываться, ставить лайки, писать коментарии другим, нажав на кнопку "Заработать монеты"\n\n🛒Для того чтобы купить подписки, лайки, коментарии, нажмите кнопку "Создать задание"\n\n🏦Чтобы посмотреть баланс монет, нажмите кнопку "Баланс"\n\n🫂Чтобы использовать реферальную систему, нажмите на кнопку "Реферальная система"\n\n⭐️Также вы можете купить монеты за звезды в телеграм, нажав на кнопку "Купить монеты"\n\n⚡Если хотите чтобы ваш заказ быстрее выполнился, вы можете купить буст нажав на кнопку "Буст заданий", там же и можно посмотреть все ваши активные задания\n\n🎁Если хотите создать или ввести уже существующий промокод, нажмите на кнопку "Промокоды"', reply_markup=kb.client_reply_keyboards)
 
 
 @router.message(F.text == '🏦Баланс')
@@ -70,7 +71,7 @@ async def referal_system_handler(message: Message, state: FSMContext):
     await state.clear()
     quantity_ref = await sql.get_clients_sql(message.from_user.id)
     quantity_ref = quantity_ref[3]
-    await message.answer(text=f'🤝Реферальная система:\n\n🏅За одного приглашённого человека мы даём 2 монеты\n\n❗️Прежде чем начинать приглашать рефералов, посмотрите правила введя команду /rules\n\n👀Ваша реферальная ссылка:\nhttps://t.me/Mutual_Promotion_Bot?start={message.from_user.id}\n\n🫂Количество рефералов: {quantity_ref}')
+    await message.answer(text=f'🤝Реферальная система:\n\n🏅Мы будем давать вам 10% от заработка вашего реферала\n\n❗️Прежде чем начинать приглашать рефералов, посмотрите правила введя команду /rules\n\n👀Ваша реферальная ссылка:\nhttps://t.me/Mutual_Promotion_Bot?start={message.from_user.id}\n\n🫂Количество рефералов: {quantity_ref}')
 
 
 @router.message(F.text == '📈Заработать монеты')
@@ -103,24 +104,32 @@ async def promo_handler(message: Message, state: FSMContext):
     await message.answer('📌Это система промокодов!\n\n🎲За создание промокода мы берём комиссию в размере 10 монет\n\n‼️Также нужно заплатить за промокод столько монет, сколько монет расчитано на промокод\n\n👀1 монета которая выдаётся в промокоде = 1 ваша монета\n\n☝1 человек может воспользоваться определённым промокодом только 1 раз\n\n🔙Если хотите вернуться на главную, нажмите кнопку "На главную"', reply_markup=kb.promo_keyboard)
 
 
-@router.message(F.text == '🛒Создать промокод')
+@router.message(F.text == '🎟Создать промокод')
 async def buy_promo_one_handler(message: Message, state: FSMContext):
     money = await sql.get_clients_sql(message.from_user.id)
     await state.clear()
-    if int(money[1]) > 10:
-        await message.answer(text=f'‼️За создание промокода мы берём комиссию 10 монет, минимальное количество монет для создание промокода 11\n\n🏦Ваш баланс: {money[1]}, с которых мы автоматически спишем 10 монет за создание промокода, на создание промокода у вас есть {int(money[1])-10} монет\n\n✍Введите сколько монет будет выдаваться за одну активацию промокода')
+    if float(money[1])//1 > 10:
+        await message.answer(text=f'‼️За создание промокода мы берём комиссию 10 монет, минимальное количество монет для создание промокода 11\n\n🏦Ваш баланс: {money[1]}, с которых мы автоматически спишем 10 монет за создание промокода, на создание промокода у вас есть {float(money[1])//1-10} монет\n\n✍Введите сколько монет будет выдаваться за одну активацию промокода')
         await state.set_state(buy_promo_state.points)
     else:
         await message.answer('‼️У вас недостаточно монет, чтобы создать промокод требуется минимум 11 монет')
         await state.clear()
 
+
+@router.message(F.text == '🎉Ввести промокод')
+async def use_promo_one_handler(message: Message, state: FSMContext):
+    await state.clear()
+    await message.answer('‼️Введите промокод без лишних символов')
+    await state.set_state(use_promo_state.name)
+
+    
 @router.message(buy_promo_state.points)
 async def buy_promo_two_handler(message: Message, state: FSMContext):
     if str(message.text).isdigit() == True:
         money = await sql.get_clients_sql(message.from_user.id)
-        if int(money[1])-10 >= int(message.text):
+        if float(money[1])//1-10 >= int(message.text):
             await state.update_data(points=message.text)
-            await message.answer(text=f'✒️Теперь введите сколько активаций может быть у промокода, имейте ввиду, что для каждого промокода своё количество монет, которое вы указывали ранее.\n\n‼️Максимально вы можете сделать активаций: {(int(money[1])-10)//int(message.text)}')
+            await message.answer(text=f'✒️Теперь введите сколько активаций может быть у промокода, имейте ввиду, что для каждого промокода своё количество монет, которое вы указывали ранее.\n\n‼️Максимально вы можете сделать активаций: {(float(money[1])//1-10)//int(message.text)}')
             await state.set_state(buy_promo_state.quantity)
         else:
             await message.answer('‼️У вас недостаточно монет. Действие отменено!')
@@ -129,14 +138,14 @@ async def buy_promo_two_handler(message: Message, state: FSMContext):
         await message.answer('‼️Вы ввели не число, действие отменено!')
         await state.clear()
 
-        
+
 @router.message(buy_promo_state.quantity)
 async def buy_promo_tree_handler(message: Message, state: FSMContext):
     if str(message.text).isdigit() == True:
         money = await sql.get_clients_sql(message.from_user.id)
         await state.update_data(quantity=message.text)
         data = await state.get_data()
-        if (int(money[1])-10)//int(message.text) >= int(data['quantity']):
+        if (float(money[1])//1-10)//int(message.text) >= int(data['quantity']):
             while True:
                 promokode = [random.choice(['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','0','1','2','3','4','5','6','7','8','9']) for i in range(8)]
                 promokode = promokode[0]+promokode[1]+promokode[2]+promokode[3]+promokode[4]+promokode[5]+promokode[6]+promokode[7]
@@ -154,11 +163,6 @@ async def buy_promo_tree_handler(message: Message, state: FSMContext):
         await message.answer('‼️Вы ввели не число, действие отменено!')
         await state.clear()
 
-
-@router.message(F.text == '✒️Ввести промокод')
-async def use_promo_one_handler(message: Message, state: FSMContext):
-    await message.answer('‼️Введите промокод без лишних символов')
-    await state.set_state(use_promo_state.name)
 
 @router.message(use_promo_state.name)
 async def use_promo_two_handler(message: Message, state: FSMContext):
@@ -188,36 +192,18 @@ async def add_point_chanel(message: Message, state: FSMContext):
     await state.clear()
     await message.answer(text=f'💬Подпишитесь на канал и нажмите кнопку проверить.\n\n✅Если вы подписались мы вам выдадим 2 монеты.\n\n{CHANEL}', reply_markup=kb.check_inline_keyboard)
 
-@router.message(F.text == '🛒Купить услуги')
+@router.message(F.text == '🛒Создать задание')
 async def buy_otzuv_handler_one(message: Message, state: FSMContext):
     await state.clear()
     points = await sql.get_clients_sql(message.from_user.id)
     await message.answer(text=f'💰Напишите количество услуг, которое хотите купить.\n\n🪙1 Монета = 1 Услуга(1 подписчик, 1 лайк или 1 коментарий)\n\n✅Если вы не ознакомлены с правилами, прочитайте правила воспользуясь командой /rules\n\n🏦Баланс: {points[1]} монет\n\n🧲Минимально можно купить 3 услуги')
     await state.set_state(buy_otzuv_state.price)
 
-@router.message(F.text == 'Буст')
+@router.message(F.text == '⚡Буст заданий')
 async def bust_main_handler(message: Message, state: FSMContext):
     await state.clear()
     data = await sql.get_my_active_order(message.from_user.id)
-    await message.answer(text=f'Здесь ты можешь купить бусты для всех своих заданий, при покупке буста, все ваши задания становятся на первое место\n\nБуст для одного задания стоит 1 монету\n\nУ вас всего {len(data)} заданий, следовательно буст будет стоить {len(data)} монет\n\nЕсли хотите увидеть все ваши задания, нажмите на кнопку "Мои активные задания\n\nЕсли хотите купить буст, нажмите на кнопку "Купить буст""', reply_markup=kb.bust_main_inline_keyboard)
-
-@router.callback_query(F.data == 'active_orders_cd')
-async def my_active_order_handler(callback: CallbackQuery):
-    await callback.answer()
-    await callback.message.delete()
-    data = await sql.get_my_active_order(callback.from_user.id)
-    stroka = 'Все ваши задания:\n\n'
-    for i in range(1, len(data)+1):
-        exercise = str(data[i-1][1]).replace('\n\n', '\n')
-        stroka = stroka + f'{i}) Заказ {data[i-1][0]}:\n{exercise}Осталось услуг: {data[i-1][2]}\n\n'
-    await callback.message.answer(text=str(stroka), reply_markup=kb.back_my_active_order_inline_keyboard, disable_web_page_preview=True)
-
-@router.callback_query(F.data == 'back_activ_order')
-async def back_activ_order_handler(callback: CallbackQuery):
-    await callback.answer()
-    await callback.message.delete()
-    data = await sql.get_my_active_order(callback.from_user.id)
-    await callback.message.answer(text=f'Здесь ты можешь купить бусты для всех своих заданий, при покупке буста, все ваши задания становятся на первое место\n\nБуст для одного задания стоит 1 монету\n\nУ вас всего {len(data)} заданий, следовательно буст будет стоить {len(data)} монет\n\nЕсли хотите увидеть все ваши задания, нажмите на кнопку "Мои активные задания\n\nЕсли хотите купить буст, нажмите на кнопку "Купить буст""', reply_markup=kb.bust_main_inline_keyboard)
+    await message.answer(text=f'🚀Здесь ты можешь купить бусты для всех своих заданий, при покупке буста, все ваши задания становятся на первое место и их выполнят быстрее\n\n‼️Буст для одного задания стоит 1 монету, буст можно купить только для всех заданий сразу\n\n👨‍💻Количество ваших активных заданий: {len(data)}\n💎Столько монет будет стоить буст: {len(data)}\n\n📒Если хотите увидеть все ваши задания, нажмите на кнопку "Мои активные задания"\n\n⚡Если хотите купить буст, нажмите на кнопку "Купить буст"', reply_markup=kb.bust_main_inline_keyboard)
 
 
 @router.message(buy_otzuv_state.price)
@@ -225,7 +211,7 @@ async def buy_otzuv_handler_two(message: Message, state: FSMContext):
     if message.text.isdigit() == True and int(message.text) >= 3:
         points = await sql.get_clients_sql(message.from_user.id)
         points = points[1]
-        if int(points) >= int(message.text) and int(points) > 0 and int(message.text) > 0:
+        if float(points)//1 >= int(message.text) and float(points)//1 > 0 and int(message.text) > 0:
             await state.update_data(price=message.text)
             await state.set_state(buy_otzuv_state.des)
             await message.answer('📝Теперь введите полное описание того что нужно сделать одному человеку. И объязательно прикрепите ссылку.\n\n🌟Пример:\nНужно подписаться на канал @Mutual_Promotion_Channel\n\n🌗Если описание будет не полное, модерация отклонит ваш запрос. \n\n✅Если вы не ознакомлены с правилами, прочитайте правила воспользуясь командой /rules')
@@ -293,6 +279,9 @@ async def approve_pass_handler(callback: CallbackQuery, bot: Bot):
     data_text = callback.message.caption
     data = str(callback.message.caption).split()
     await sql.add_points_sql(data[-1])
+    whose_referal = await sql.get_clients_sql(str(data[-1]))
+    if whose_referal[4] != 'No':
+        await sql.issue_points_sql(str(whose_referal[4]), 0.1)
     await sql.update_id_fast_orders_sql(data[2], data[-1])
     fast_order = await sql.activ_order_or_no_sql(str(data[2]))
     if fast_order != None:
@@ -421,7 +410,7 @@ async def issue_point_two_handler(message: Message, bot: Bot, state: FSMContext)
 async def one_point_plus_handler(callback: CallbackQuery):
     await callback.message.delete()
     await callback.message.answer_invoice(title='2 монеты', 
-                                          description='🪙За 2 монеты вы сможете купить 2 услуги',
+                                          description='🏦За 2 монеты вы сможете купить 2 услуги',
                                           payload='one_point_payload',
                                           currency='XTR',
                                           prices=[LabeledPrice(label='XTR', amount=1)])
@@ -430,7 +419,7 @@ async def one_point_plus_handler(callback: CallbackQuery):
 async def five_point_plus_handler(callback: CallbackQuery):
     await callback.message.delete()
     await callback.message.answer_invoice(title='10 монет', 
-                                          description='🪙За 10 монет вы сможете купить 10 услуг',
+                                          description='🏦За 10 монет вы сможете купить 10 услуг',
                                           payload='five_point_payload',
                                           currency='XTR',
                                           prices=[LabeledPrice(label='XTR', amount=5)])
@@ -439,7 +428,7 @@ async def five_point_plus_handler(callback: CallbackQuery):
 async def ten_point_plus_handler(callback: CallbackQuery):
     await callback.message.delete()
     await callback.message.answer_invoice(title='20 монет', 
-                                          description='🪙За 20 монет вы сможете купить 20 услуг',
+                                          description='🏦За 20 монет вы сможете купить 20 услуг',
                                           payload='ten_point_payload',
                                           currency='XTR',
                                           prices=[LabeledPrice(label='XTR', amount=10)])
@@ -448,7 +437,7 @@ async def ten_point_plus_handler(callback: CallbackQuery):
 async def twentyfive_point_plus_handler(callback: CallbackQuery):
     await callback.message.delete()
     await callback.message.answer_invoice(title='50 монет', 
-                                          description='🪙За 50 монет вы сможете купить 50 услуг',
+                                          description='🏦За 50 монет вы сможете купить 50 услуг',
                                           payload='twentyfive_point_payload',
                                           currency='XTR',
                                           prices=[LabeledPrice(label='XTR', amount=25)])
@@ -556,3 +545,35 @@ async def everyone_point_handler(message: Message):
             await message.answer(text='Успешно!')
         except:
             await message.answer(text='Ошибка!')
+
+
+@router.callback_query(F.data == 'active_orders_cd')
+async def my_active_order_handler(callback: CallbackQuery):
+    await callback.answer()
+    await callback.message.delete()
+    data = await sql.get_my_active_order(callback.from_user.id)
+    stroka = '📒Все ваши задания:\n\n'
+    for i in range(1, len(data)+1):
+        exercise = str(data[i-1][1]).replace('\n\n', '\n')
+        stroka = stroka + f'{i}) 👀Заказ {data[i-1][0]}:\n{exercise}‼️Осталось услуг: {data[i-1][2]}\n\n'
+    await callback.message.answer(text=str(stroka), reply_markup=kb.back_my_active_order_inline_keyboard, disable_web_page_preview=True)
+
+@router.callback_query(F.data == 'back_activ_order')
+async def back_activ_order_handler(callback: CallbackQuery):
+    await callback.answer()
+    await callback.message.delete()
+    data = await sql.get_my_active_order(callback.from_user.id)
+    await callback.message.answer(text=f'🚀Здесь ты можешь купить бусты для всех своих заданий, при покупке буста, все ваши задания становятся на первое место и их выполнят быстрее\n\n‼️Буст для одного задания стоит 1 монету, буст можно купить только для всех заданий сразу\n\n👨‍💻Количество ваших активных заданий: {len(data)}\n💎Столько монет будет стоить буст: {len(data)}\n\n📒Если хотите увидеть все ваши задания, нажмите на кнопку "Мои активные задания"\n\n⚡Если хотите купить буст, нажмите на кнопку "Купить буст"', reply_markup=kb.bust_main_inline_keyboard)
+
+
+@router.callback_query(F.data == 'buy_bust')
+async def buy_bust_callback_handler(callback: CallbackQuery):
+    await callback.answer()
+    points = await sql.get_clients_sql(callback.from_user.id)
+    data = await sql.get_my_active_order(callback.from_user.id)
+    if float(points[1])//1 >= len(data):
+        await sql.bust_my_active_order_sql(callback.from_user.id)
+        await sql.minus_balance_sql(str(callback.from_user.id), len(data))
+        await callback.message.answer(text=f'✅Вы купили буст, ваш заказ на первом месте\n\n🚀Вы потратили монет: {len(data)}\n\n📈Советуем покупать бусты несколько раз в день чтобы заказ выполнился как можно скорее')
+    else:
+        await callback.message.answer('‼️У вас недостаточно монет')

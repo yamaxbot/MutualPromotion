@@ -4,9 +4,9 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 
 client_reply_keyboards = ReplyKeyboardMarkup(keyboard=[
-    [KeyboardButton(text='💫Купить монеты'), KeyboardButton(text='🎁Промокоды')],
-    [KeyboardButton(text='📈Заработать монеты'), KeyboardButton(text='🛒Купить услуги')],
-    [KeyboardButton(text='🫂Реферальная система'), KeyboardButton(text='🏦Баланс')]
+    [KeyboardButton(text='💫Купить монеты'), KeyboardButton(text='🎁Промокоды'), KeyboardButton(text='🏦Баланс')],
+    [KeyboardButton(text='📈Заработать монеты'), KeyboardButton(text='🛒Создать задание')],
+    [KeyboardButton(text='🫂Реферальная система'), KeyboardButton(text='⚡Буст заданий')],
 
 ], resize_keyboard=True, input_field_placeholder='Введите...')
 
@@ -40,16 +40,16 @@ quantity_buy_point_keyboard = InlineKeyboardMarkup(inline_keyboard=[
 
 
 promo_keyboard = ReplyKeyboardMarkup(keyboard=[
-    [KeyboardButton(text='🛒Создать промокод')],
-    [KeyboardButton(text='✒️Ввести промокод')],
+    [KeyboardButton(text='🎟Создать промокод')],
+    [KeyboardButton(text='🎉Ввести промокод')],
     [KeyboardButton(text='🔙На главную')]
 
 ], resize_keyboard=True, input_field_placeholder='Введите...')
 
 
 bust_main_inline_keyboard = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='Купить буст', callback_data='buy_bust')],
-    [InlineKeyboardButton(text='Мои активные задания', callback_data='active_orders_cd')]
+    [InlineKeyboardButton(text='⚡Купить буст', callback_data='buy_bust')],
+    [InlineKeyboardButton(text='📒Мои активные задания', callback_data='active_orders_cd')]
 ])
 
 
